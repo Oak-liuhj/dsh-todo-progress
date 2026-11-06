@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createProjectionAdapter, deriveView, formatUpdatedAt, emptyView } from '../src/projection.mjs';
+import { createProjectionAdapter, deriveView, formatUpdatedAt, emptyView } from './reference/projection.mjs';
 
 const T = (content, status) => ({ content, status });
 

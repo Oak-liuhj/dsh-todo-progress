@@ -5,7 +5,6 @@ yarn-error.log*
 pnpm-debug.log*
 
 # build / release artifacts
-*.tgz
 *.zip
 dist/
 out/
@@ -27,3 +26,6 @@ plugin-data/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+.local-validation/
+*.tgz

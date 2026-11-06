@@ -1,6 +1,6 @@
 # dsh-todo-progress server-fiber mount point (ds-bot / dsh-one-memory same family).
 # The client bundle descriptor (package.json dsh.client) is resolved by name;
-# this insert only materialises the (no-op) server plugin in the profile fiber.
+# this insert mounts the authenticated UI action bridge in the profile fiber.
 # 旧名 dsh-task-panel 仅作安装别名（npm:dsh-todo-progress），包身份以 dsh-todo-progress 为准。
 - insert:
     - id: task-panel

@@ -1,6 +1,6 @@
 {
   "name": "dsh-todo-progress",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "type": "module",
   "description": "会话任务进度右侧栏 tab：todos 投影只读适配层（契约 v0.2，设计基线 v1.0）",
   "main": "index.js",
@@ -11,11 +11,19 @@
   "files": [
     "index.js",
     "client.js",
+    "src/",
+    "scripts/",
+    "docs/images/",
+    "docs/本地验收记录-1.2.0-2026-11-06.md",
     "cordis.patch.yml",
     "README.md"
   ],
   "scripts": {
-    "test": "node test/projection.test.mjs"
+    "build": "node scripts/build-client.mjs",
+    "build:check": "node scripts/build-client.mjs --check",
+    "pretest": "npm run build",
+    "prepack": "npm run build",
+    "test": "node --test test/*.test.mjs && node test/selfcheck-load.mjs"
   },
   "engines": {
     "dsh": "0.2.1-rc.5"
@@ -37,6 +45,7 @@
       "dsh-task-panel"
     ]
   },
-  "peerDependencies": {},
-  "dependencies": {}
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
 }
