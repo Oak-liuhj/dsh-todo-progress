@@ -1,0 +1,32 @@
+{
+  "name": "dsh-todo-progress",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "会话任务进度右侧栏 tab：todos 投影只读适配层（契约 v0.2，设计基线 v1.0）",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node test/projection.test.mjs"
+  },
+  "engines": {
+    "dsh": "0.2.1-rc.5"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "verifiedDsh": "0.2.1-rc.5",
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": { "platform": "web" }
+  },
+  "dsBot": { "min": "0.2.6", "verified": "0.2.7", "aliases": ["dsh-task-panel"] },
+  "peerDependencies": {},
+  "dependencies": {}
+}
