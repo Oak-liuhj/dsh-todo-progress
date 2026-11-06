@@ -1,29 +1,44 @@
 {
   "name": "dsh-todo-progress",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
-  "description": "会话任务进度右侧栏 tab：todos 投影只读适配层（契约 v0.2，设计基线 v1.0）",
+  "description": "DSH 任务进度面板：从右上角查看多步任务的完成比例、当前步骤和待办清单，支持 Web 与桌面客户端。",
   "main": "index.js",
   "exports": {
     ".": "./index.js",
-    "./client": "./client.js"
+    "./client": "./client.js",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./assets/icon.png"
   },
   "files": [
     "index.js",
     "client.js",
     "src/",
     "scripts/",
+    "assets/",
+    "locale/",
+    "screenshots.json",
+    "docs/DETAIL.md",
+    "docs/DETAIL.zh-CN.md",
     "docs/images/",
-    "docs/本地验收记录-1.2.0-2026-11-06.md",
     "cordis.patch.yml",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md",
+    "NOTICE",
+    "LICENSE",
+    "LICENSE.upstream",
+    "docs/PUBLISHING.md",
+    "marketplace/"
   ],
   "scripts": {
     "build": "node scripts/build-client.mjs",
     "build:check": "node scripts/build-client.mjs --check",
     "pretest": "npm run build",
-    "prepack": "npm run build",
-    "test": "node --test test/*.test.mjs && node test/selfcheck-load.mjs"
+    "prepack": "npm run build && node scripts/check-release.mjs",
+    "test": "node --test test/*.test.mjs && node test/selfcheck-load.mjs",
+    "check:release": "npm run build:check && node scripts/check-release.mjs"
   },
   "engines": {
     "dsh": "0.2.1-rc.5"
@@ -35,7 +50,13 @@
       "patch": "./cordis.patch.yml"
     },
     "client": {
-      "platform": "web"
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar-right",
+        "@deepseek-ai/dsh-client-ui-workspace"
+      ]
     }
   },
   "dsBot": {
@@ -46,6 +67,30 @@
     ]
   },
   "devDependencies": {
-    "esbuild": "0.25.12"
+    "esbuild": "0.25.12",
+    "js-yaml": "4.3.2"
+  },
+  "license": "(Apache-2.0 AND MIT)",
+  "author": "Oak-liuhj",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Oak-liuhj/dsh-todo-progress.git"
+  },
+  "homepage": "https://github.com/Oak-liuhj/dsh-todo-progress#readme",
+  "bugs": {
+    "url": "https://github.com/Oak-liuhj/dsh-todo-progress/issues"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "dsh",
+    "task-progress",
+    "todo",
+    "sidebar",
+    "productivity"
+  ],
+  "icon": "assets/icon.png",
+  "publishConfig": {
+    "access": "public"
   }
 }

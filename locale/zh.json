@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "任务进度",
+    "description": "从右上角“任务”查看多步任务的完成比例、当前步骤和待办清单，支持状态筛选、详情展开及 Web / 桌面客户端。",
+    "detail": "docs/DETAIL.zh-CN.md"
+  }
+}

@@ -1,0 +1,11 @@
+dsh-todo-progress
+Maintained at https://github.com/Oak-liuhj/dsh-todo-progress
+
+This distribution includes code from an MIT-licensed implementation:
+Copyright (c) 2026 Fei2411.
+The original copyright and permission notice are retained in LICENSE.upstream.
+
+The repository's Apache License, Version 2.0 is retained in LICENSE.
+The package SPDX expression (Apache-2.0 AND MIT) records the notices and
+obligations of these included portions; it does not offer a choice of license
+for all files.

@@ -87,6 +87,24 @@ test('whole-panel collapse and legacy toggle preserve source data, settings and 
     assert.equal(rows[0].status, 'pending');
 });
 
+test('in-panel usage guide opens and closes without changing task data or export access', () => {
+    const h = harness();
+    const rows = Object.freeze([Object.freeze({content: '保留的待办', status: 'pending'})]);
+    h.mount('Body', {sessionId: 'help-test', useProjection: () => rows});
+    nodes(h.tree).find(n => n.props['aria-label'] === '更多操作').props.onClick(); h.render();
+    click(h, '使用说明');
+    const guide = nodes(h.tree).find(n => typeof n.type === 'function' && n.type.name === 'UsageGuide');
+    assert.ok(guide);
+    assert.equal(guide.type().props['aria-label'], '任务进度使用说明');
+    assert.equal(rows[0].status, 'pending');
+    nodes(h.tree).find(n => n.props['aria-label'] === '更多操作').props.onClick(); h.render();
+    click(h, '收起使用说明');
+    assert.ok(!nodes(h.tree).some(n => typeof n.type === 'function' && n.type.name === 'UsageGuide'));
+    nodes(h.tree).find(n => n.props['aria-label'] === '更多操作').props.onClick(); h.render();
+    click(h, '导出 JSON 快照');
+    assert.ok(nodes(h.tree).some(n => n.props['aria-label'] === 'JSON 快照'));
+});
+
 test('handoff fallback never replaces real projection or resurrects cleared observed tasks', () => {
     const h = harness(); const inherited = [{content: '旧卷', status: 'in_progress'}];
     const info = {handoff: {todos: inherited}};

@@ -41,7 +41,7 @@ module.exports = __toCommonJS(index_exports);
 
 // src/client/constants.js
 var NS = "dsh-task-panel";
-var VERSION = false ? "development" : "1.2.0";
+var VERSION = false ? "development" : "1.2.1";
 var TAB_KIND = "todo-progress";
 var SLOT = "sidebar.right.pane.tab";
 var FRAMES_KEY = NS + ".frames.v1";
@@ -138,6 +138,11 @@ function cssText(t) {
     ".tp-menu button { text-align:left; border:0; background:none; color:" + t.ink2 + "; font-size:12px;",
     " line-height:22px; padding:2px 8px; border-radius:6px; cursor:pointer; }",
     ".tp-menu button:hover { background:" + t.acw + "; color:" + t.ink + "; }",
+    // 说明独立滚动，300px 窄栏中仍为任务列表保留空间。
+    ".tp-guide {flex:0 1 auto;overflow:auto;max-height:220px;margin:8px 14px 0;padding:10px;",
+    " border:1px solid " + t.line + ";border-radius:8px;background:" + t.card2 + ";font-size:12px;line-height:19px;}",
+    ".tp-guide-version {margin-left:8px;color:" + t.safe + ";font-size:11px}",
+    ".tp-guide p {margin:6px 0}.tp-guide ul {padding-left:18px;margin:6px 0 0}.tp-guide li+li {margin-top:5px}",
     ".tp-export { margin:8px 14px 0; }",
     ".tp-export textarea { width:100%; box-sizing:border-box; height:150px; resize:vertical; font-size:11px; line-height:16px;",
     " font-family:'SF Mono','JetBrains Mono',Consolas,monospace; color:" + t.ink2 + "; background:" + t.card2 + ";",
@@ -278,10 +283,10 @@ function navigate(sid) {
 }
 
 // src/client/components/panel.js
-var import_react7 = __toESM(require("react"), 1);
+var import_react8 = __toESM(require("react"), 1);
 
 // src/client/components/task-panel.js
-var import_react6 = __toESM(require("react"), 1);
+var import_react7 = __toESM(require("react"), 1);
 
 // src/client/hooks.js
 var import_react2 = __toESM(require("react"), 1);
@@ -680,17 +685,38 @@ function Empty() {
     h5(
       "div",
       { className: "g" },
-      "长任务开始时模型会调用 ",
+      "多步任务里模型会调用 ",
       h5("code", null, "todo_write"),
-      " 写入待办清单，这里将实时出现进度。",
+      " 写入待办清单，这里将实时出现进度",
       h5("br"),
       "（若上一轮进行中被打断，本页会显示黄色「未完成即中断」标记与上一轮快照入口）"
     )
   );
 }
 
+// src/client/components/usage-guide.js
+var import_react6 = __toESM(require("react"), 1);
+function UsageGuide() {
+  const h11 = import_react6.default.createElement;
+  return h11(
+    "section",
+    { className: "tp-guide", "aria-label": "任务进度使用说明" },
+    h11("strong", null, "任务进度"),
+    h11("span", { className: "tp-guide-version" }, "v" + VERSION),
+    h11("p", null, "在 DSH Web 或桌面客户端，点击右上角“任务”即可打开当前会话的进度。"),
+    h11(
+      "ul",
+      null,
+      h11("li", null, "多步任务产生待办后，可查看完成比例、当前步骤，按状态筛选并展开详情。"),
+      h11("li", null, "这里只展示待办。如需调整任务或状态，请在会话中告诉模型；简单问答可能没有待办。"),
+      h11("li", null, "全部完成后默认 30 分钟收起，可在“更多操作”中调整时长。"),
+      h11("li", null, "“现在换会话”需启用配套会话分卷插件；未启用时仍可正常查看任务。")
+    )
+  );
+}
+
 // src/client/components/task-panel.js
-var { createElement: h6, useRef: useRef6, useEffect: useEffect6, useState: useState6 } = import_react6.default;
+var { createElement: h6, useRef: useRef6, useEffect: useEffect6, useState: useState6 } = import_react7.default;
 var warnedNoFace = false;
 function Body(props) {
   var dark = useTheme();
@@ -718,6 +744,7 @@ function Body(props) {
   var _f = useState6("all"), filter = _f[0], setFilter = _f[1];
   var _m = useState6(false), menuOpen = _m[0], setMenuOpen = _m[1];
   var _e = useState6(false), exportOpen = _e[0], setExportOpen = _e[1];
+  var _help = useState6(false), helpOpen = _help[0], setHelpOpen = _help[1];
   var _x = useState6(null), expandedFor = _x[0], setExpandedFor = _x[1];
   var _c = useConfig(), cfg = _c[0], setCfg = _c[1];
   var _pc = useState6(function() {
@@ -921,6 +948,10 @@ function Body(props) {
         },
         exportOpen ? "收起 JSON 快照" : "导出 JSON 快照"
       ),
+      h6("button", { onClick: function() {
+        setHelpOpen(!helpOpen);
+        setMenuOpen(false);
+      }, "aria-expanded": helpOpen ? "true" : "false" }, helpOpen ? "收起使用说明" : "使用说明"),
       h6("button", {
         onClick: function() {
           var idx = COLLAPSE_STEPS.indexOf(cfg.collapseMinutes);
@@ -944,6 +975,7 @@ function Body(props) {
       } }, "收起面板")
     ) : null
   ));
+  if (helpOpen) nodes.push(h6(UsageGuide, { key: "guide" }));
   if (busy || message) nodes.push(h6("div", { key: "status", className: "tp-note", role: "status" }, busy ? "正在交接，请稍候…" : message));
   if (info && info.source) nodes.push(h6(
     "div",
@@ -1109,7 +1141,7 @@ function Body(props) {
 }
 
 // src/client/components/panel.js
-var { createElement: h7, useRef: useRef7, useEffect: useEffect7, useState: useState7 } = import_react7.default;
+var { createElement: h7, useRef: useRef7, useEffect: useEffect7, useState: useState7 } = import_react8.default;
 function Panel(props) {
   const element = useRef7(null);
   const info = props.useTabInfo?.();
@@ -1125,8 +1157,8 @@ function Panel(props) {
 }
 
 // src/client/components/tab-title.js
-var import_react8 = __toESM(require("react"), 1);
-var { createElement: h8, useRef: useRef8, useEffect: useEffect8, useState: useState8 } = import_react8.default;
+var import_react9 = __toESM(require("react"), 1);
+var { createElement: h8, useRef: useRef8, useEffect: useEffect8, useState: useState8 } = import_react9.default;
 function ChipTitle(props) {
   useTheme();
   var info = null;
@@ -1163,8 +1195,8 @@ function ChipTitle(props) {
 }
 
 // src/client/components/legacy-dock.js
-var import_react9 = __toESM(require("react"), 1);
-var { createElement: h9, useRef: useRef9, useEffect: useEffect9, useState: useState9 } = import_react9.default;
+var import_react10 = __toESM(require("react"), 1);
+var { createElement: h9, useRef: useRef9, useEffect: useEffect9, useState: useState9 } = import_react10.default;
 function LegacyDock(props) {
   var config = useConfig()[0];
   useEffect9(function() {
@@ -1255,11 +1287,11 @@ var CompactPanelLayout = class {
 };
 
 // src/client/host/header-entry.js
-var import_react11 = __toESM(require("react"), 1);
+var import_react12 = __toESM(require("react"), 1);
 
 // src/client/components/task-entry.js
-var import_react10 = __toESM(require("react"), 1);
-var h10 = import_react10.default.createElement;
+var import_react11 = __toESM(require("react"), 1);
+var h10 = import_react11.default.createElement;
 function TaskEntry(props) {
   useTheme();
   const todos = props.useProjection?.("todos");
@@ -1303,11 +1335,11 @@ function registerHeaderEntry(slots) {
           store: original.store,
           inject: original.inject,
           locale: original.locale
-        }, (props) => import_react11.default.createElement(
+        }, (props) => import_react12.default.createElement(
           "div",
           { className: "tp-header-controls" },
-          import_react11.default.createElement(TaskEntry, props),
-          import_react11.default.createElement(original.component, props)
+          import_react12.default.createElement(TaskEntry, props),
+          import_react12.default.createElement(original.component, props)
         ));
       } catch (error) {
         disposeEntry = void 0;
@@ -1390,7 +1422,7 @@ function apply(ctx) {
               return "任务进度";
             },
             description: function() {
-              return "会话待办实时进度（只读 todos 投影）";
+              return "查看多步任务的完成比例、当前步骤和待办清单";
             }
           }]
         });

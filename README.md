@@ -1,6 +1,6 @@
 # dsh-todo-progress
 
-DSH Web 和桌面客户端共用的会话任务进度插件。当前版本 **1.2.0**：从页面右上角的任务图标进入，使用更窄的右侧面板查看当前会话的待办。
+DSH Web 和桌面客户端共用的会话任务进度插件。多步任务里模型会调用 `todo_write` 写入待办清单，这里将实时出现进度。当前版本 **1.2.1**：从页面右上角的任务图标进入，使用更窄的右侧面板查看当前会话的待办。
 
 ![右上角任务入口与半宽进度面板](docs/images/v1.2-task-panel.png)
 
@@ -12,7 +12,7 @@ DSH Web 和桌面客户端共用的会话任务进度插件。当前版本 **1.2
 4. 模型通过 `todo_write` 写入清单后，面板实时显示完成数、进度条、当前步骤、筛选和详情。有待开始或进行中的任务时，入口及标签页显示蓝点。
 5. 行详情与整面板都能收起。全部完成后默认 30 分钟自动收起，可在「⋯」中切换 1 / 30 / 60 分钟；点击完成徽章恢复，新清单重新计时。
 
-「⋯」还提供现在换会话、新建空白会话、JSON 快照复制 / 下载、兼容旧面板开关。空态也可使用菜单。兼容旧面板默认关闭，开启后在输入框上方显示同源列表，独立滚动。
+「⋯ → 使用说明」可查看面板内操作引导。「⋯」还提供现在换会话、新建空白会话、JSON 快照复制 / 下载、兼容旧面板开关。空态也可使用菜单。兼容旧面板默认关闭，开启后在输入框上方显示同源列表，独立滚动。
 
 ## 数据与会话操作
 
@@ -34,14 +34,17 @@ DSH Web 和桌面客户端共用的会话任务进度插件。当前版本 **1.2
 
 ## 安装与卸载
 
-在 DSH 插件管理中安装本目录或打包产物；CLI 示例（`<name>` 替换为实际 profile）：
+市场收录后，可在 dsh-market 中搜索 **dsh-todo-progress / 任务进度** 查看详情、截图并安装。当前也可使用本地安装包：
 
 ```powershell
-dsh plugin --profile <name> add "D:\workspace_wm\dsh-todo-progress"
+dsh plugin --profile desktop add "<dsh-todo-progress-1.2.1.tgz 的完整路径>"
+dsh plugin --profile web add "<dsh-todo-progress-1.2.1.tgz 的完整路径>"
 dsh plugin --profile <name> remove dsh-todo-progress
 ```
 
-本地开发 profile 可使用 `"dsh-todo-progress": "link:D:/workspace_wm/dsh-todo-progress"`。包名和客户端 ModuleLoader id 均为 `dsh-todo-progress`；插槽命名空间及本地数据键保留 `dsh-task-panel`。旧 npm 名称可以用 alias：`dsh-task-panel@npm:dsh-todo-progress`（需对应包已发布）。
+安装后重新加载界面；若宿主提示重启，请正常退出并重新打开。新建 / 交接会话需要完整的插件服务重新加载。
+
+开发 profile 可使用 `"dsh-todo-progress": "link:D:/workspace_wm/dsh-todo-progress"`。包名和客户端 ModuleLoader id 均为 `dsh-todo-progress`；插槽命名空间及本地数据键保留 `dsh-task-panel` 以兼容旧数据。当前 npm 包尚未发布，市场收录可直接使用公开 GitHub 仓库，无需先发布 npm。
 
 卸载会注销插槽并恢复宿主原入口及旧面板；上述浏览器缓存不自动删除。彻底清理时可手动删除两个键。宿主 `dsh.sidebar-right.v1.*` 可能保留标签页记录，插件不直接修改宿主缓存。
 
@@ -58,7 +61,7 @@ src/
     constants.js                 插件标识与版本
     theme.js                     样式与主题适配
     hooks.js                     待办订阅、计时、交接状态
-    components/                  任务入口、正文、行、空态、旧面板
+    components/                  任务入口、正文、行、空态、使用说明、旧面板
     model/todos.js               只读派生逻辑和帧边沿判定
     state/storage.js             插件自有缓存与配置
     host/
@@ -69,7 +72,12 @@ src/
     plugin.js                    生命周期、可选 R3 服务注入
     http-controller.js           HTTP 认证、同源与参数校验
     session-actions.js           新建会话与工作区继承
+locale/                          插件页中英文标题、简介、详情入口
+assets/                          SVG 图标源文件及市场用 PNG
+screenshots.json                 市场展示截图的声明与顺序
+marketplace/                     目录投稿 YAML 和 PR 正文
 scripts/build-client.mjs          客户端构建及产物一致性校验
+scripts/check-release.mjs         DSH / 市场发布格式与资源检查
 test/                            单元、加载与安全边界回归
   reference/projection.mjs        仅测试使用的历史投影契约参考
 docs/                            分版本本地验收记录
@@ -79,17 +87,18 @@ docs/                            分版本本地验收记录
 
 ## 开发与打包
 
-Node.js + pnpm（当前锁文件为 pnpm）；无第三方运行时依赖。React 由 DSH 注入，esbuild 仅用于开发构建。
+Node.js + pnpm（当前锁文件为 pnpm）；无第三方运行时依赖。React 由 DSH 注入，esbuild 仅用于开发构建，js-yaml 仅用于发布格式检查。
 
 ```powershell
 pnpm install
 npm run build            # 打包客户端
 npm test                 # 自动构建、回归测试、ModuleLoader 隔离加载自检
 npm run build:check      # 确认生成物与源码一致
-npm pack                 # 自动构建并生成 1.2.0 安装包
+npm run check:release    # 插件装配、双语说明、图标、截图及市场条目
+npm pack                 # 自动构建、检查并生成 1.2.1 安装包
 ```
 
-发布包包含根入口、运行时源码和构建脚本；本地验证目录、浏览器认证日志及测试模型配置不打包。开发前保留现有 profile 与会话数据；浏览器回归使用独立验证会话。
+发布包包含根入口、运行时源码、双语详情、图标截图和构建脚本；本地验证目录、浏览器认证日志及测试模型配置不打包。开发前保留现有 profile 与会话数据；浏览器回归使用独立验证会话。
 
 ## 宿主适配边界
 
@@ -100,8 +109,12 @@ npm pack                 # 自动构建并生成 1.2.0 安装包
 - 宿主升级后应复验：插槽及 store 绑定、右栏宽度与恢复、todos 投影、空会话入口、浮动 / 全屏和插件卸载。
 - todos 目前只提供内容与状态，因此详情不显示未经数据支持的产物、耗时等字段。
 
-实机验证见 [1.2.0 Web 验收记录](docs/本地验收记录-1.2.0-2026-11-06.md) 与 [桌面客户端验收记录](docs/桌面客户端验收记录-1.2.0-2026-11-06.md)。
+实机验证见 [1.2.0 Web 验收记录](https://github.com/Oak-liuhj/dsh-todo-progress/blob/main/docs/本地验收记录-1.2.0-2026-11-06.md) 与 [桌面客户端验收记录](https://github.com/Oak-liuhj/dsh-todo-progress/blob/main/docs/桌面客户端验收记录-1.2.0-2026-11-06.md)。
+
+## 市场发布
+
+发布格式、包内容、收录步骤与当前前置条件见 [发布指南](docs/PUBLISHING.md)。中英文插件详情由 `locale/*` 的 `meta.detail` 指向 `docs/DETAIL*`；不要在清单里编造宿主不支持的展示字段。
 
 ## 许可证
 
-本仓库原有 Apache-2.0 许可保留在 `LICENSE`；导入的 MIT 源码许可与版权声明保留在 `LICENSE.upstream`。
+本仓库原有 Apache-2.0 许可保留在 `LICENSE`；导入的 MIT 源码许可与版权声明保留在 `LICENSE.upstream`，来源通知见 `NOTICE`。包清单使用 `(Apache-2.0 AND MIT)` 表达所含代码的许可义务。

@@ -70,6 +70,11 @@ export function cssText(t) {
         ".tp-menu button { text-align:left; border:0; background:none; color:" + t.ink2 + "; font-size:12px;",
         " line-height:22px; padding:2px 8px; border-radius:6px; cursor:pointer; }",
         ".tp-menu button:hover { background:" + t.acw + "; color:" + t.ink + "; }",
+        // 说明独立滚动，300px 窄栏中仍为任务列表保留空间。
+        ".tp-guide {flex:0 1 auto;overflow:auto;max-height:220px;margin:8px 14px 0;padding:10px;",
+        " border:1px solid " + t.line + ";border-radius:8px;background:" + t.card2 + ";font-size:12px;line-height:19px;}",
+        ".tp-guide-version {margin-left:8px;color:" + t.safe + ";font-size:11px}",
+        ".tp-guide p {margin:6px 0}.tp-guide ul {padding-left:18px;margin:6px 0 0}.tp-guide li+li {margin-top:5px}",
         ".tp-export { margin:8px 14px 0; }",
         ".tp-export textarea { width:100%; box-sizing:border-box; height:150px; resize:vertical; font-size:11px; line-height:16px;",
         " font-family:'SF Mono','JetBrains Mono',Consolas,monospace; color:" + t.ink2 + "; background:" + t.card2 + ";",

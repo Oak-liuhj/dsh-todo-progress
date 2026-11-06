@@ -61,7 +61,7 @@ export function apply(ctx) {
                             return "任务进度";
                         },
                         description: function () {
-                            return "会话待办实时进度（只读 todos 投影）";
+                            return "查看多步任务的完成比例、当前步骤和待办清单";
                         }
                     }]
                 });

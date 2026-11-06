@@ -10,6 +10,7 @@ import {runtime, navigate} from "../host/navigation.js";
 import {Row} from "./task-row.js";
 import {Dot} from "./icons.js";
 import {Empty} from "./empty-state.js";
+import {UsageGuide} from './usage-guide.js';
 
 export var warnedNoFace = false; // D-37：face 断链一次性告警位
 
@@ -42,6 +43,7 @@ export function Body(props) {
     var _f = useState("all"), filter = _f[0], setFilter = _f[1];
     var _m = useState(false), menuOpen = _m[0], setMenuOpen = _m[1];
     var _e = useState(false), exportOpen = _e[0], setExportOpen = _e[1];
+    var _help = useState(false), helpOpen = _help[0], setHelpOpen = _help[1];
     var _x = useState(null), expandedFor = _x[0], setExpandedFor = _x[1];
     var _c = useConfig(), cfg = _c[0], setCfg = _c[1];
     var _pc = useState(function () { return !!framesGet(framesLoad(), sid).panelCollapsed; });
@@ -194,6 +196,10 @@ export function Body(props) {
                     }
                 },
                 exportOpen ? "收起 JSON 快照" : "导出 JSON 快照"),
+            h("button", {onClick: function () {
+                setHelpOpen(!helpOpen);
+                setMenuOpen(false);
+            }, "aria-expanded": helpOpen ? "true" : "false"}, helpOpen ? "收起使用说明" : "使用说明"),
             h("button", {
                 onClick: function () {
                     var idx = COLLAPSE_STEPS.indexOf(cfg.collapseMinutes);
@@ -205,6 +211,7 @@ export function Body(props) {
                 onClick: function () { setCfg({collapseMinutes: cfg.collapseMinutes, legacyDock: !cfg.legacyDock}); }},
                 "兼容旧面板：" + (cfg.legacyDock ? "开" : "关")),
             h("button", {onClick: function () { setPanel(true); }}, "收起面板")) : null));
+    if (helpOpen) nodes.push(h(UsageGuide, {key: "guide"}));
     if (busy || message) nodes.push(h("div", {key: "status", className: "tp-note", role: "status"}, busy ? "正在交接，请稍候…" : message));
     if (info && info.source) nodes.push(h("div", {key: "source", className: "tp-note"},
         h("button", {className: "tp-chip", onClick: function () {
