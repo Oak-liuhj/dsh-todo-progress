@@ -23,10 +23,20 @@
   "dsh": {
     "manifestVersion": 1,
     "verifiedDsh": "0.2.1-rc.5",
-    "bundle": { "patch": "./cordis.patch.yml" },
-    "client": { "platform": "web" }
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
   },
-  "dsBot": { "min": "0.2.6", "verified": "0.2.7", "aliases": ["dsh-task-panel"] },
+  "dsBot": {
+    "min": "0.2.6",
+    "verified": "0.2.7",
+    "aliases": [
+      "dsh-task-panel"
+    ]
+  },
   "peerDependencies": {},
   "dependencies": {}
 }

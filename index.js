@@ -5,12 +5,14 @@
 // inject 都是已注册服务时才激活；类插件 `static inject = []` 即时激活、自足；
 // ctx proxy 对未声明属性访问直接 THROW —— 所以这里 logger 也只敢 try/catch 摸一下。
 export default class DshTaskPanelServer {
-  static inject = [];
-  constructor(ctx) {
-    try {
-      if (ctx.logger && typeof ctx.logger.info === "function") {
-        ctx.logger.info("[dsh-todo-progress] server half active (no-op; UI lives in client.js)");
-      }
-    } catch { /* ctx gating is best-effort; never break the host */ }
-  }
+    static inject = [];
+
+    constructor(ctx) {
+        try {
+            if (ctx.logger && typeof ctx.logger.info === "function") {
+                ctx.logger.info("[dsh-todo-progress] server half active (no-op; UI lives in client.js)");
+            }
+        } catch { /* ctx gating is best-effort; never break the host */
+        }
+    }
 }
