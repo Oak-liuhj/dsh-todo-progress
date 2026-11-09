@@ -50,13 +50,14 @@ for (const shot of shots) {
 
 const registryFile = 'marketplace/Oak-liuhj__dsh-todo-progress.yml';
 const entry = load(await readFile(await localFile(registryFile), 'utf8'));
-assert.deepEqual(Object.keys(entry).sort(), ['category', 'description', 'icon', 'name', 'url']);
+assert.deepEqual(Object.keys(entry).sort(), ['category', 'description', 'icon', 'name', 'tarball', 'url']);
 assert.equal(entry.url, repo);
 assert.equal(entry.name, 'Oak-liuhj/dsh-todo-progress');
 assert.equal(entry.category, 'ui');
 assert.match(entry.description.en, /\.$/);
 assert.match(entry.description.zh, /。$/);
 assert.equal(entry.icon, 'https://raw.githubusercontent.com/Oak-liuhj/dsh-todo-progress/main/' + pkg.icon);
+assert.equal(entry.tarball, `${repo}/releases/download/v${pkg.version}/${pkg.name}-${pkg.version}.tgz`);
 for (const file of ['README.md', 'CHANGELOG.md', 'LICENSE', 'LICENSE.upstream', 'NOTICE']) await localFile(file);
 const server = await import(pathToFileURL(await localFile(pkg.main)).href);
 assert.equal(typeof server.default, 'function');

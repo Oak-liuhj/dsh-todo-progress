@@ -10,6 +10,8 @@ The package declares `dsh.bundle.patch` and a prebuilt browser client, with no t
 
 The source includes tests, Web and desktop validation records, localized plugin details, a GitHub-hosted PNG icon, and `screenshots.json`. Compatibility is explicitly pinned to the verified DSH `0.2.1-rc.5`. The upstream MIT notice is retained alongside the repository's Apache-2.0 license.
 
+The prebuilt `v1.2.1` release tarball is pinned in the entry so installation does not require a frontend build. The source includes modular client/server code, a top-right task entry, compact sidebar restoration, task filters, completion collapse, JSON export and an in-panel usage guide. Imported MIT-licensed code by Fei2411 is credited in `LICENSE.upstream` and `NOTICE`.
+
 Only `data/plugins/Oak-liuhj__dsh-todo-progress.yml` is proposed here. Screenshots and documentation are maintained in the plugin repository.
 
 ## 提交前

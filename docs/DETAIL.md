@@ -21,7 +21,7 @@ Open **⋯ → 使用说明** for the in-panel guide. The same menu controls col
 
 ## Sessions and optional handoff
 
-**New session** creates an empty conversation in the same workspace. **Switch session now** requires the separately installed `@deepseek-ai/dsh-session-rollover >=1.0.1`; this companion currently uses local/internal distribution. Basic task progress works independently. Handoff snapshots are labeled with their source and yield to the current conversation's list.
+**New session** creates an empty conversation in the same workspace. **Switch session now** requires the separately installed and enabled [dsh-session-rollover](https://github.com/Oak-liuhj/dsh-session-rollover), providing the compatible rollover service introduced in 1.0.1. Basic task progress works independently; the action is unavailable without that service. Handoff snapshots are labeled with their source and yield to the current conversation's list.
 
 ## Data, permissions and compatibility
 
