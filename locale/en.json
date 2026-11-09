@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Task Progress",
+    "title": "dsh-todo-progress",
     "description": "Follow multi-step tasks from the top-right Tasks button: completion, current step, filters and task details. Works in DSH Web and desktop.",
     "detail": "docs/DETAIL.md"
   }

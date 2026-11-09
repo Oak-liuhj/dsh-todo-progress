@@ -1,120 +1,230 @@
 # dsh-todo-progress
 
-DSH Web 和桌面客户端共用的会话任务进度插件。多步任务里模型会调用 `todo_write` 写入待办清单，这里将实时出现进度。当前版本 **1.2.1**：从页面右上角的任务图标进入，使用更窄的右侧面板查看当前会话的待办。
+**DSH 任务进度面板 · 在会话右上角查看多步任务的完成情况**
 
-![右上角任务入口与半宽进度面板](docs/images/v1.2-task-panel.png)
+为 DeepSeek Harness Web 与桌面客户端提供任务进度侧栏。点击右上角「任务」，即可查看当前会话的完成比例、正在执行的步骤和待办清单，适合代码开发、问题排查、资料整理等多步任务。
 
-## 使用
+> 多步任务里模型会调用 todo_write 写入待办清单，这里将实时出现进度
 
-1. 点击会话右上角「任务」（任务图标 + 标签），直接打开「任务进度」。空白会话也显示入口；重复点击会复用已有任务标签页。
-2. 任务面板默认使用打开前右栏宽度的 **1/2**。例如 648px → 324px；宿主最小宽度为 **300px**，不足时取 300px。
-3. 切到其他工具或关闭任务页时恢复原宽度。任务页打开后若手动拖动过栏宽，退出时保留手动设置。全屏与浮动面板沿用宿主布局。
-4. 模型通过 `todo_write` 写入清单后，面板实时显示完成数、进度条、当前步骤、筛选和详情。有待开始或进行中的任务时，入口及标签页显示蓝点。
-5. 行详情与整面板都能收起。全部完成后默认 30 分钟自动收起，可在「⋯」中切换 1 / 30 / 60 分钟；点击完成徽章恢复，新清单重新计时。
+当前版本 **1.2.1** · 已验证 DSH **0.2.1-rc.5** · 无第三方运行时依赖 · 任务界面为中文
 
-「⋯ → 使用说明」可查看面板内操作引导。「⋯」还提供现在换会话、新建空白会话、JSON 快照复制 / 下载、兼容旧面板开关。空态也可使用菜单。兼容旧面板默认关闭，开启后在输入框上方显示同源列表，独立滚动。
+[安装](#安装) · [快速上手](#快速上手) · [常见问题](#常见问题) · [English overview](docs/DETAIL.md) · [更新记录](CHANGELOG.md) · [问题反馈](https://github.com/Oak-liuhj/dsh-todo-progress/issues)
 
-## 数据与会话操作
+![DSH 会话右上角的任务入口与任务进度侧栏](docs/images/v1.2-task-panel.png)
 
-- 任务来自宿主 `props.useProjection("todos")`，插件只读，不修改任务或伪造进度。「第几步」按投影数组位置计算，从 1 开始。
-- 上一帧有进行中任务而清单被清空时，保留中断标记和上一轮快照；出现新清单时解除。待办更新时间只在任务内容或状态改变时刷新。
-- 「现在换会话」需要 `@deepseek-ai/dsh-session-rollover >=1.0.1`，调用其共享分卷事务，支持手动提前分卷。未安装时禁用此项，普通待办继续可用。
-- 新卷显示来源链接；当前卷还没有待办时可展示带标识的交接快照。当前投影接管后，即使清空也不会复活旧快照。插件不把交接快照写入 todos。
-- 「新建空白会话」继承原会话工作区，无工作区时继承工作目录。上述操作走宿主 owner 登录认证、同源校验与请求校验，不允许共享查看者修改会话。
-- JSON 复制使用浏览器剪贴板；无法访问时提示用户选择文本或下载。
+## 功能一览
 
-浏览器仅写两个插件自有 localStorage 键，沿用旧版本名称以保留已有设置：
-
-| 键 | 用途 |
+| 功能 | 使用体验 |
 | --- | --- |
-| `dsh-task-panel.frames.v1` | 按会话保存最近任务帧（含任务文本）、中断记忆、收起状态及更新时间 |
-| `dsh-task-panel.config.v1` | 收起时长、兼容旧面板开关 |
+| 一键打开 | 右上角「任务」直接进入进度面板，空白会话也能打开；重复点击复用已有标签页 |
+| 进度与当前步骤 | 显示完成数、总任务数、百分比及当前步骤，并行进行中的任务同时高亮 |
+| 筛选与详情 | 按「全部 / 进行中 / 待办 / 完成」筛选，展开任务查看完整内容 |
+| 更窄的侧栏 | 默认使用原右栏宽度的一半，最低 300px；切换工具后恢复，保留主动拖动后的宽度 |
+| 收起与恢复 | 支持手动收起；全部完成后默认 30 分钟自动收起，可选择 1 / 30 / 60 分钟 |
+| 快照与导出 | 查看必要的中断提示和上一轮快照，将当前任务快照复制或下载为 JSON |
+| 会话联动 | 新建空白会话并继承工作区；启用配套分卷插件后可使用「现在换会话」 |
 
-存储不可用时仍可渲染。浏览器缓存不提供跨设备同步；会话交接数据由 R3 管理。插件不保存登录凭据。
+<details>
+<summary>查看桌面客户端效果</summary>
 
-## 安装与卸载
+Web 与桌面客户端使用同一套会话界面和任务入口。
 
-市场收录后，可在 dsh-market 中搜索 **dsh-todo-progress / 任务进度** 查看详情、截图并安装。当前也可使用本地安装包：
+![DSH 桌面客户端中的任务入口与进度面板](docs/images/v1.2-desktop-task-panel.png)
+
+</details>
+
+## 安装
+
+### 从市场安装
+
+市场收录后，在 **dsh-market** 中搜索 `dsh-todo-progress`，查看插件详情后安装，并确认插件已启用。收录和可安装状态以市场实际展示为准。
+
+### 从本地安装包安装
+
+使用 `dsh-todo-progress-1.2.1.tgz`。如果仓库 [Releases](https://github.com/Oak-liuhj/dsh-todo-progress/releases) 已提供附件，可下载对应版本；否则按下方「开发与打包」从源码生成。
+
+在安装包所在目录打开 PowerShell，按实际使用的 profile **选择一条**执行：
 
 ```powershell
-dsh plugin --profile desktop add "<dsh-todo-progress-1.2.1.tgz 的完整路径>"
-dsh plugin --profile web add "<dsh-todo-progress-1.2.1.tgz 的完整路径>"
-dsh plugin --profile <name> remove dsh-todo-progress
+# DSH 桌面客户端
+dsh plugin --profile desktop add ".\dsh-todo-progress-1.2.1.tgz" --ignore-scripts
+
+# DSH Web
+dsh plugin --profile web add ".\dsh-todo-progress-1.2.1.tgz" --ignore-scripts
 ```
 
-安装后重新加载界面；若宿主提示重启，请正常退出并重新打开。新建 / 交接会话需要完整的插件服务重新加载。
+自定义 profile 请将 `desktop` 或 `web` 替换为实际名称。更新已有版本时使用相同命令即可；插件客户端已预构建，安装时无需编译。
 
-开发 profile 可使用 `"dsh-todo-progress": "link:D:/workspace_wm/dsh-todo-progress"`。包名和客户端 ModuleLoader id 均为 `dsh-todo-progress`；插槽命名空间及本地数据键保留 `dsh-task-panel` 以兼容旧数据。当前 npm 包尚未发布，市场收录可直接使用公开 GitHub 仓库，无需先发布 npm。
+安装后确认插件已启用，并正常退出、重新打开对应的 DSH 客户端或 Web 服务，让服务端和界面同时加载新版本。已有本地设置使用原存储键继续读取。若 profile 含手工放置的依赖，更新前请保留备份，宿主包管理器可能整理未声明的包。
 
-卸载会注销插槽并恢复宿主原入口及旧面板；上述浏览器缓存不自动删除。彻底清理时可手动删除两个键。宿主 `dsh.sidebar-right.v1.*` 可能保留标签页记录，插件不直接修改宿主缓存。
+## 快速上手
 
-## 项目结构
+1. 打开一个会话，向模型描述需要分步骤完成的任务。
+2. 点击会话右上角的 **「任务」**，打开「任务进度」侧栏。
+3. 模型通过 `todo_write` 创建或更新待办后，面板随清单变化刷新进度。
+4. 使用状态筛选查看任务，展开任务行查看详情；需要调整任务时，在会话中告诉模型。
+5. 点击面板右上角 **「⋯ → 使用说明」**，查看面板内的操作提示。
 
-```text
-index.js                         服务端稳定安装入口
-client.js                        生成的 ModuleLoader 客户端入口
-cordis.patch.yml                 DSH 服务端插件装配
-src/
-  client/
-    index.js                     客户端导出
-    register.js                  插槽、标签类型、卸载生命周期
-    constants.js                 插件标识与版本
-    theme.js                     样式与主题适配
-    hooks.js                     待办订阅、计时、交接状态
-    components/                  任务入口、正文、行、空态、使用说明、旧面板
-    model/todos.js               只读派生逻辑和帧边沿判定
-    state/storage.js             插件自有缓存与配置
-    host/
-      navigation.js              会话导航与桥接请求
-      header-entry.js            组合右上角入口与宿主原按钮
-      compact-layout.js          半宽布局租约与能力降级
-  server/
-    plugin.js                    生命周期、可选 R3 服务注入
-    http-controller.js           HTTP 认证、同源与参数校验
-    session-actions.js           新建会话与工作区继承
-locale/                          插件页中英文标题、简介、详情入口
-assets/                          SVG 图标源文件及市场用 PNG
-screenshots.json                 市场展示截图的声明与顺序
-marketplace/                     目录投稿 YAML 和 PR 正文
-scripts/build-client.mjs          客户端构建及产物一致性校验
-scripts/check-release.mjs         DSH / 市场发布格式与资源检查
-test/                            单元、加载与安全边界回归
-  reference/projection.mjs        仅测试使用的历史投影契约参考
-docs/                            分版本本地验收记录
+可以用这样的任务开始：
+
+> 请检查这个项目的构建问题，先建立待办清单，再按步骤定位原因、修复并验证。
+
+简单问答可能不会产生待办。面板展示模型写入的任务清单；模型未创建清单时会显示引导文案。
+
+### 面板菜单
+
+| 菜单项 | 作用 |
+| --- | --- |
+| 使用说明 | 展开或收起操作引导 |
+| 导出 JSON 快照 | 复制或下载当前任务快照；剪贴板不可用时可选择文本或下载 |
+| 收起面板 | 将面板收起为可点击恢复的卡片 |
+| 完成收起阈值 | 在 1 / 30 / 60 分钟之间切换，仅在全部任务完成后生效 |
+| 兼容旧面板 | 在输入框上方显示同一份任务列表，默认关闭 |
+| 新建会话 | 创建空白会话，优先继承原工作区，无工作区时继承工作目录 |
+| 现在换会话 | 通过配套分卷插件交接会话，需另行安装并启用兼容版本 |
+
+有待开始或进行中的任务时，入口和任务标签显示蓝点。点击「已完成」徽章可重新展开；出现新清单后，自动收起重新计时。
+
+<details>
+<summary>查看 1.2.1 空态与面板使用说明</summary>
+
+![任务面板中的使用说明与空态文案](docs/images/v1.2.1-usage-guide.png)
+
+</details>
+
+## 可选：会话分卷联动
+
+基础任务进度功能可独立使用。若需要「现在换会话」和交接来源展示，请另行安装并启用配套的 [dsh-session-rollover](https://github.com/Oak-liuhj/dsh-session-rollover)。它需要提供兼容的会话分卷服务；相关接口在 1.0.1 起提供，安装方式与版本要求以配套仓库说明为准。
+
+未启用兼容服务时，「现在换会话」不可用。新卷尚无自己的待办时，可展示带来源标识的交接快照；当前会话清单出现后，以当前清单为准。快照不会被写回为当前会话的待办。
+
+新建和交接会话要求宿主 owner 身份，共享查看者不能通过这些入口修改会话。
+
+## 兼容性与数据说明
+
+- **验证范围**：DSH 运行时 `0.2.1-rc.5`，Web 与桌面客户端。其他宿主版本需要重新验证；界面中的任务名称和操作提示目前为中文。
+- **任务来源**：读取宿主当前会话的待办清单。完成比例按已完成项数计算，不代表工时或耗时比例；当前步骤取首个进行中任务。
+- **任务修改**：通过会话中的模型更新。插件读取和展示任务，不直接修改待办，也不自动创建任务清单。
+- **本地存储**：最近任务帧包含任务文本，与收起状态和偏好一起保存在当前浏览器或桌面客户端的本地存储中；这份缓存不提供跨设备同步。
+- **模型配置**：无需为插件另行提供模型 API Key；模型调用继续使用 DSH 的配置。插件不保存登录凭据。
+- **布局适配**：半宽布局依赖当前宿主实现。宿主升级后若缺少所需能力，插件保留宿主布局；浮动和全屏模式沿用宿主行为。
+
+<details>
+<summary>本地缓存与卸载清理说明</summary>
+
+为兼容旧版本，保留以下 localStorage 键：
+
+| 键 | 内容 |
+| --- | --- |
+| `dsh-task-panel.frames.v1` | 按会话保存最近任务帧、中断记忆、收起状态和更新时间，含任务文本 |
+| `dsh-task-panel.config.v1` | 完成后收起时长、兼容旧面板开关 |
+
+存储不可用时仍可展示当前任务。卸载不会自动删除缓存；若需要彻底清理，可在对应 DSH 界面的开发者工具中删除以上两个键。此操作会清除插件缓存与偏好，不会删除宿主会话。
+
+宿主自己的 `dsh.sidebar-right.v1.*` 键可能保留标签页记录，插件不会直接修改这些键。会话交接数据由配套分卷插件管理。
+
+</details>
+
+## 常见问题
+
+**为什么任务面板是空的？**
+
+当前会话尚未产生待办，或模型尚未调用 `todo_write`。可以要求模型先建立待办清单。若模型已经写入清单，请确认打开的是对应会话，并检查宿主版本是否兼容。
+
+**能直接在面板中勾选完成或修改任务吗？**
+
+任务由模型创建和更新。如需修改内容或状态，请在会话中提出要求。
+
+**为什么宽度不是原来的精确一半？**
+
+侧栏遵守宿主 300px 的最小宽度，例如原宽度 576px 时会使用 300px。手动拖动过侧栏后，插件会保留新宽度；切换到其他工具或关闭任务页时，未手动调整的宽度会恢复。
+
+**为什么「现在换会话」不可点击？**
+
+请确认配套分卷插件已经启用并提供兼容服务。已封存的只读会话、缺少会话导航能力或操作正在进行时，此入口也可能不可用。
+
+**更新后还是旧界面，或者看不到完整插件说明？**
+
+正常退出并重新打开对应的客户端或 Web 服务，确认版本已更新。部分宿主版本只能显示插件图标、名称和摘要，尚不渲染长篇详情；可阅读本 README，或打开任务面板的「使用说明」。
+
+## 卸载
+
+按安装时使用的 profile 选择一条命令：
+
+```powershell
+# DSH 桌面客户端
+dsh plugin --profile desktop remove dsh-todo-progress
+
+# DSH Web
+dsh plugin --profile web remove dsh-todo-progress
 ```
 
-按组件、业务逻辑、状态、宿主适配及服务端边界分类。修改 `src/client/` 后必须重新生成 `client.js`；不要直接编辑生成文件。服务端保持 ESM 源码加载，根入口不变。
+重新打开 DSH 后生效。插件卸载时注销自己的入口和插槽，恢复宿主原入口及原待办面板；本地缓存清理方式见上文。
 
 ## 开发与打包
 
-Node.js + pnpm（当前锁文件为 pnpm）；无第三方运行时依赖。React 由 DSH 注入，esbuild 仅用于开发构建，js-yaml 仅用于发布格式检查。
+本仓库 CI 使用 **Node.js 24 / pnpm 11**。React 由 DSH 提供，esbuild 和 js-yaml 仅为开发依赖。
 
 ```powershell
-pnpm install
-npm run build            # 打包客户端
-npm test                 # 自动构建、回归测试、ModuleLoader 隔离加载自检
-npm run build:check      # 确认生成物与源码一致
-npm run check:release    # 插件装配、双语说明、图标、截图及市场条目
-npm pack                 # 自动构建、检查并生成 1.2.1 安装包
+git clone https://github.com/Oak-liuhj/dsh-todo-progress.git
+cd dsh-todo-progress
+pnpm install --frozen-lockfile
+
+npm run build          # 从 src/client/ 生成 client.js
+npm test               # 回归测试与 ModuleLoader 加载自检
+npm run check:release  # 产物一致性、装配、元数据、图标、截图和投稿条目
+
+New-Item -ItemType Directory -Path dist -Force | Out-Null
+npm pack --pack-destination dist
 ```
 
-发布包包含根入口、运行时源码、双语详情、图标截图和构建脚本；本地验证目录、浏览器认证日志及测试模型配置不打包。开发前保留现有 profile 与会话数据；浏览器回归使用独立验证会话。
+打包后得到 `dist/dsh-todo-progress-1.2.1.tgz`。`npm pack` 自动构建并检查发布格式；包内包含运行时源码、预构建客户端、说明、图标、截图及许可证，不包含本地验证配置与认证日志。
 
-## 宿主适配边界
+### 项目结构
 
-- `engines.dsh` / `dsh.verifiedDsh`：DSH 运行时 `0.2.1-rc.5`。历史 `dsBot.min=0.2.6` / `dsBot.verified=0.2.7` 是桌面壳字段，与 DSH 运行时版本不同。
-- 使用公开插槽 `conversation.session.header.corner` 组合任务入口和宿主原按钮，复用原注册的 store / inject / locale，注销后自动恢复原条目。
-- 当前宿主 layout 服务没有公开宽度 setter。半宽适配集中在 `host/compact-layout.js`：从公开 root 插槽记录取得共享 store，调用其 `setRightbar` action。此行为依赖当前宿主 root store 的实现；宿主升级后须复验。缺少能力时保留正常面板并警告一次。
-- 不访问布局控制器私有字段、不修改宿主安装包、不直接写宿主布局缓存。多个可见任务页共享一次宽度调整，最后一个退出才恢复。
-- 宿主升级后应复验：插槽及 store 绑定、右栏宽度与恢复、todos 投影、空会话入口、浮动 / 全屏和插件卸载。
-- todos 目前只提供内容与状态，因此详情不显示未经数据支持的产物、耗时等字段。
+```text
+index.js / client.js        服务端入口 / 生成的客户端入口
+cordis.patch.yml            DSH 插件装配
+src/client/
+  components/              任务入口、面板、任务行、空态与使用说明
+  model/                   待办派生、筛选、中断判定与导出
+  state/                   本地缓存与偏好
+  host/                    会话导航、右上角入口与布局适配
+  hooks.js / register.js   状态订阅 / 插槽注册和生命周期
+src/server/                会话操作、认证与请求校验
+locale/                    插件页的中英文元数据和详情文档路径
+assets/                    图标源文件与 PNG
+screenshots.json           市场截图声明
+scripts/                   客户端构建与发布检查
+test/                      回归测试和加载自检
+docs/                      插件说明、发布指南与验收记录
+marketplace/               投稿 YAML 与 PR 正文
+```
 
-实机验证见 [1.2.0 Web 验收记录](https://github.com/Oak-liuhj/dsh-todo-progress/blob/main/docs/本地验收记录-1.2.0-2026-11-06.md) 与 [桌面客户端验收记录](https://github.com/Oak-liuhj/dsh-todo-progress/blob/main/docs/桌面客户端验收记录-1.2.0-2026-11-06.md)。
+修改客户端源码后执行 `npm run build`，不要直接修改生成的 `client.js`。开发 profile 可通过 `link:` 指向自己的项目路径；不要复用其他机器的绝对路径。
 
-## 市场发布
+<details>
+<summary>宿主接口与升级适配说明</summary>
 
-发布格式、包内容、收录步骤与当前前置条件见 [发布指南](docs/PUBLISHING.md)。中英文插件详情由 `locale/*` 的 `meta.detail` 指向 `docs/DETAIL*`；不要在清单里编造宿主不支持的展示字段。
+- 任务数据使用宿主 `props.useProjection("todos")`。步号由清单顺序派生，从 1 开始；内容或状态变化时更新待办时间。上一轮进行中的清单被清空时，按状态边沿保留中断提示与上一轮快照，新清单到来后解除。
+- 右上角入口组合在 `conversation.session.header.corner` 插槽，复用宿主注册的 store / inject / locale。注销后恢复原条目。
+- `host/compact-layout.js` 从公开 root 插槽记录取得共享 store，调用 `setRightbar` 调整宽度。该适配依赖当前宿主实现；多个可见任务页共用一次调整，最后一个退出才恢复。
+- 包名及 ModuleLoader id 为 `dsh-todo-progress`；插槽命名空间和缓存键保留 `dsh-task-panel` 以兼容已有数据。
+- `engines.dsh` 与 `dsh.verifiedDsh` 指向 DSH 运行时版本；历史 `dsBot.min` / `dsBot.verified` 是桌面壳字段，不与运行时版本混用。
+- 宿主升级后应复验入口、空会话、待办订阅、侧栏宽度恢复、浮动 / 全屏、会话操作和卸载。
+
+</details>
+
+## 发布与反馈
+
+上架格式、投稿材料和操作步骤见 [发布指南](docs/PUBLISHING.md)。[中文详情](docs/DETAIL.zh-CN.md) 与 [英文详情](docs/DETAIL.md) 通过 `locale/*` 的 `meta.detail` 提供给支持详情读取的宿主；市场展示应在实际收录后验证。
+
+发布前执行测试、发布检查和打包。市场收录不要求先发布 npm；公开安装包和市场可用状态以 Releases 与市场实际展示为准。
+
+使用问题请提交到 [GitHub Issues](https://github.com/Oak-liuhj/dsh-todo-progress/issues)，建议附上 DSH 版本、Web / 桌面、插件版本、复现步骤和已脱敏截图。请勿提交 API Key、登录 token 或完整会话数据。
+
+历史实机记录：[1.2.0 Web 验收](https://github.com/Oak-liuhj/dsh-todo-progress/blob/main/docs/本地验收记录-1.2.0-2026-11-06.md) · [1.2.0 桌面验收](https://github.com/Oak-liuhj/dsh-todo-progress/blob/main/docs/桌面客户端验收记录-1.2.0-2026-11-06.md) · [1.2.1 发布准备验收](https://github.com/Oak-liuhj/dsh-todo-progress/blob/main/docs/发布验收记录-1.2.1-2026-11-06.md)。这些记录对应各自版本和验证环境，不代表所有宿主版本均已验证。
 
 ## 许可证
 
-本仓库原有 Apache-2.0 许可保留在 `LICENSE`；导入的 MIT 源码许可与版权声明保留在 `LICENSE.upstream`，来源通知见 `NOTICE`。包清单使用 `(Apache-2.0 AND MIT)` 表达所含代码的许可义务。
+本项目包含 Apache-2.0 与 MIT 许可的代码，包清单标记为 `(Apache-2.0 AND MIT)`。原仓库许可证见 [LICENSE](LICENSE)，导入源码的 MIT 许可证见 [LICENSE.upstream](LICENSE.upstream)，来源与版权通知见 [NOTICE](NOTICE)。
