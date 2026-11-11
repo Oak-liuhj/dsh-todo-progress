@@ -39,6 +39,20 @@ Web 与桌面客户端使用同一套会话界面和任务入口。
 
 市场收录后，在 **dsh-market** 中搜索 `dsh-todo-progress`，查看插件详情后安装，并确认插件已启用。收录和可安装状态以市场实际展示为准。
 
+### 按包名安装
+
+已发布 [npm 公共包 `dsh-todo-progress`](https://www.npmjs.com/package/dsh-todo-progress)。在 DSH 的添加插件入口填写 **`dsh-todo-progress`**；也可按实际 profile 选择一条命令：
+
+```powershell
+# DSH 桌面客户端
+dsh plugin --profile desktop add dsh-todo-progress --ignore-scripts
+
+# DSH Web
+dsh plugin --profile web add dsh-todo-progress --ignore-scripts
+```
+
+包名安装从 npm 获取插件，与市场目录搜索的更新进度相互独立。若所用 npm 镜像尚未同步，可在命令末尾添加 `--registry=https://registry.npmjs.org/` 使用官方源。安装后按下文说明重新打开对应的 DSH 客户端或 Web 服务。
+
 ### 从本地安装包安装
 
 使用 `dsh-todo-progress-1.2.1.tgz`。如果仓库 [Releases](https://github.com/Oak-liuhj/dsh-todo-progress/releases) 已提供附件，可下载对应版本；否则按下方「开发与打包」从源码生成。

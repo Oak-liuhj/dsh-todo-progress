@@ -52,6 +52,22 @@ npm pack --pack-destination dist
 
 **仓库年龄限制**：GitHub API 显示本仓库创建于 `2026-11-06 14:36:26`（北京时间），因此最早在 **2026-11-07 14:36:26** 满足“创建满一天”。这是目录 CI 的要求。
 
-发布到 npm 是可选的，不影响 GitHub 插件收录。本项目使用 GitHub Release 提供预构建安装包，不要求用户通过 npm 安装。若以后发布 npm，包的 repository 必须与目录条目相同，才能被市场关联。
+GitHub 插件收录与 npm 发布是两个独立步骤。若要让用户直接填写 `dsh-todo-progress` 包名安装，必须把同名公共包发布到 npm；仅上传 GitHub Release 或合并收录 PR 不足以支持 npm 包名安装。包的 repository 必须与目录条目相同，市场才能在后续探测中关联 npm 来源，不要为此向投稿 YAML 添加不支持的 `npm` 字段。
+
+### 发布 npm 包名安装渠道
+
+优先发布与 GitHub Release 完全相同、已校验的安装包，保持两个渠道的版本和内容一致：
+
+```powershell
+npm whoami --registry=https://registry.npmjs.org/
+npm publish .\dist\dsh-todo-progress-1.2.1.tgz --access public --registry=https://registry.npmjs.org/ --ignore-scripts
+npm view dsh-todo-progress@1.2.1 name version repository dist --json --registry=https://registry.npmjs.org/
+```
+
+npm 发布账号需要完成 2FA 安全密钥绑定；登录邮箱验证码不能代替密钥绑定。发布过程中按 npm 提示完成本次操作的安全密钥验证，不要关闭 2FA 或在仓库中保存凭据。
+
+发布成功后，匿名下载 npm 安装包并核对它与 Release 的 SHA-256；再在独立 `DSH_HOME` 中运行 `dsh plugin --profile web add dsh-todo-progress --ignore-scripts --registry=https://registry.npmjs.org/`，检查安装版本、服务端入口和客户端加载。测试使用隔离 profile，避免整理用户实际 profile 中的手工依赖。
+
+以 npm 官方源能够查询和按包名安装为该渠道的生效依据；第三方 npm 镜像、市场目录和搜索索引的同步分别验证，不承诺固定同步时间。
 
 版本发布以 [GitHub Releases](https://github.com/Oak-liuhj/dsh-todo-progress/releases) 为准。目录申请状态以 [收录 PR](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pulls?q=is%3Apr+author%3AOak-liuhj+dsh-todo-progress) 为准；PR 提交、检查通过与正式收录是不同阶段，最终以维护者合并及市场索引刷新为准。
