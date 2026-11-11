@@ -27,7 +27,7 @@ Open **⋯ → 使用说明** for the in-panel guide. The same menu controls col
 
 The panel reads tasks without modifying them. Recent task snapshots (including task text), collapse state and preferences are stored in local browser storage and survive uninstall until manually cleared. Creating or handing off sessions requires the host owner identity.
 
-Verified on **DSH 0.2.1-rc.5**, in Web and desktop. The plugin needs no additional API key; model credentials are managed by DSH.
+Verified on **DSH 0.2.2-rc.1**, in Web and desktop; **0.2.1-rc.5** remains supported. Upgrade to plugin **1.2.2** if an older plugin is rejected after a DSH upgrade. The plugin needs no additional API key; model credentials are managed by DSH.
 
 ![Task panel in the desktop client](images/v1.2-desktop-task-panel.png)
 

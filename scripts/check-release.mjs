@@ -23,7 +23,11 @@ assert.equal(pkg.bugs.url, repo + '/issues');
 assert.ok(pkg.keywords.includes('dsh-plugin'));
 assert.equal(pkg.dsh.client.platform, 'web');
 assert.equal(pkg.dsh.manifestVersion, 1);
-assert.equal(pkg.engines.dsh, pkg.dsh.verifiedDsh);
+// 显式列出验证过的宿主版本，避免精确单版本锁误拦升级，也避免放开未知未来版本。
+const supportedDsh = pkg.engines.dsh.split(' || ');
+assert.ok(supportedDsh.every(version => /^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(version)));
+assert.equal(new Set(supportedDsh).size, supportedDsh.length);
+assert.ok(supportedDsh.includes(pkg.dsh.verifiedDsh), 'Verified host must be in engines.dsh');
 assert.deepEqual(Object.keys(pkg.dependencies ?? {}), [], 'Runtime dependencies should remain empty');
 assert.equal(pkg.scripts.prepare, undefined, 'GitHub installs use the checked-in client without an install-time build');
 

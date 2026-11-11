@@ -41,7 +41,7 @@ module.exports = __toCommonJS(index_exports);
 
 // src/client/constants.js
 var NS = "dsh-task-panel";
-var VERSION = false ? "development" : "1.2.1";
+var VERSION = false ? "development" : "1.2.2";
 var TAB_KIND = "todo-progress";
 var SLOT = "sidebar.right.pane.tab";
 var FRAMES_KEY = NS + ".frames.v1";

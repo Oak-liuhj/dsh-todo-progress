@@ -24,9 +24,9 @@ dsh-market 是市场应用，插件目录由 [awesome-dsh-plugin](https://github
 | `docs/DETAIL*` / `README.md` / `CHANGELOG.md` | 用户详情、安装开发说明和版本变化 |
 | `LICENSE` / `LICENSE.upstream` / `NOTICE` | 保留 Apache-2.0 与导入 MIT 代码的许可和版权通知 |
 
-`engines.dsh` 继续锁定已验证的 `0.2.1-rc.5`。尚未验证其他宿主版本，不扩大兼容声明。配套 [dsh-session-rollover](https://github.com/Oak-liuhj/dsh-session-rollover) 单独安装和启用，不作为 npm 运行时依赖安装。
+`engines.dsh` 显式声明 `0.2.1-rc.5 || 0.2.2-rc.1`，`dsh.verifiedDsh` 记录最新验证的 `0.2.2-rc.1`。后续版本完成实机验证后再追加，不使用无限制通配符。配套 [dsh-session-rollover](https://github.com/Oak-liuhj/dsh-session-rollover) 单独安装和启用，不作为 npm 运行时依赖安装。
 
-本机已安装的宿主实测可显示图标、标题和摘要，但插件详情页尚未渲染 `meta.detail` 长文档。中英文文档已按当前宿主源码的详情读取约定提供；在该本机版本中可通过 README 阅读完整说明，通过任务面板的“⋯ → 使用说明”查看操作引导。长文档在市场上的最终展示须在实际收录后验证。
+本机 DSH 0.2.2-rc.1 的插件详情页已能展示 `meta.detail` 长文档。详情版本声明与 README 同步；市场卡片、目录索引和 npm 包可用状态分别验证。
 
 ## 本地验证与打包
 
@@ -46,8 +46,8 @@ npm pack --pack-destination dist
 
 1. 把本地提交推送到 `Oak-liuhj/dsh-todo-progress` 的 `main`，确认公开仓库含新版本、图标、截图及文档。
 2. 确认仓库已添加 **`dsh-plugin`** topic。2026-11-09 核验时已设置，且仓库创建满一天。
-3. 创建 `v1.2.1` GitHub Release，上传已验证的 `dsh-todo-progress-1.2.1.tgz`。投稿 YAML 使用钉住标签的 `tarball` 地址；先验证下载与本地包 SHA-256 一致，再提交目录 PR。不要使用 `latest/download/` 搭配带版本文件名，以免后续发版使地址失效。
-4. 满足仓库年龄要求后，向 `awesome-dsh-plugin/awesome-dsh-plugin` 提 PR，只新增上述 YAML。PR 标题和说明可直接使用 [投稿正文](../marketplace/SUBMISSION.md)。
+3. 创建 `v1.2.2` GitHub Release，上传已验证的 `dsh-todo-progress-1.2.2.tgz`。投稿 YAML 使用钉住标签的 `tarball` 地址；先验证下载与本地包 SHA-256 一致，再提交目录 PR。不要使用 `latest/download/` 搭配带版本文件名，以免后续发版使地址失效。
+4. 满足仓库年龄要求后，向 `awesome-dsh-plugin/awesome-dsh-plugin` 提 PR，只修改上述 YAML（首次收录时新增）。PR 标题和说明可直接使用 [投稿正文](../marketplace/SUBMISSION.md)。
 5. 等待维护者评审和目录刷新，再在市场中搜索插件验证卡片、截图、详情、安装及更新。
 
 **仓库年龄限制**：GitHub API 显示本仓库创建于 `2026-11-06 14:36:26`（北京时间），因此最早在 **2026-11-07 14:36:26** 满足“创建满一天”。这是目录 CI 的要求。
@@ -60,8 +60,8 @@ GitHub 插件收录与 npm 发布是两个独立步骤。若要让用户直接�
 
 ```powershell
 npm whoami --registry=https://registry.npmjs.org/
-npm publish .\dist\dsh-todo-progress-1.2.1.tgz --access public --registry=https://registry.npmjs.org/ --ignore-scripts
-npm view dsh-todo-progress@1.2.1 name version repository dist --json --registry=https://registry.npmjs.org/
+npm publish .\dist\dsh-todo-progress-1.2.2.tgz --access public --registry=https://registry.npmjs.org/ --ignore-scripts
+npm view dsh-todo-progress@1.2.2 name version repository dist --json --registry=https://registry.npmjs.org/
 ```
 
 npm 发布账号需要完成 2FA 安全密钥绑定；登录邮箱验证码不能代替密钥绑定。发布过程中按 npm 提示完成本次操作的安全密钥验证，不要关闭 2FA 或在仓库中保存凭据。

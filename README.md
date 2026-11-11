@@ -6,7 +6,7 @@
 
 > 多步任务里模型会调用 todo_write 写入待办清单，这里将实时出现进度
 
-当前版本 **1.2.1** · 已验证 DSH **0.2.1-rc.5** · 无第三方运行时依赖 · 任务界面为中文
+当前版本 **1.2.2** · 已验证 DSH **0.2.2-rc.1**，保留 **0.2.1-rc.5** 支持 · 无第三方运行时依赖 · 任务界面为中文
 
 [安装](#安装) · [快速上手](#快速上手) · [常见问题](#常见问题) · [English overview](docs/DETAIL.md) · [更新记录](CHANGELOG.md) · [问题反馈](https://github.com/Oak-liuhj/dsh-todo-progress/issues)
 
@@ -55,16 +55,16 @@ dsh plugin --profile web add dsh-todo-progress --ignore-scripts
 
 ### 从本地安装包安装
 
-使用 `dsh-todo-progress-1.2.1.tgz`。如果仓库 [Releases](https://github.com/Oak-liuhj/dsh-todo-progress/releases) 已提供附件，可下载对应版本；否则按下方「开发与打包」从源码生成。
+使用 `dsh-todo-progress-1.2.2.tgz`。如果仓库 [Releases](https://github.com/Oak-liuhj/dsh-todo-progress/releases) 已提供附件，可下载对应版本；否则按下方「开发与打包」从源码生成。
 
 在安装包所在目录打开 PowerShell，按实际使用的 profile **选择一条**执行：
 
 ```powershell
 # DSH 桌面客户端
-dsh plugin --profile desktop add ".\dsh-todo-progress-1.2.1.tgz" --ignore-scripts
+dsh plugin --profile desktop add ".\dsh-todo-progress-1.2.2.tgz" --ignore-scripts
 
 # DSH Web
-dsh plugin --profile web add ".\dsh-todo-progress-1.2.1.tgz" --ignore-scripts
+dsh plugin --profile web add ".\dsh-todo-progress-1.2.2.tgz" --ignore-scripts
 ```
 
 自定义 profile 请将 `desktop` 或 `web` 替换为实际名称。更新已有版本时使用相同命令即可；插件客户端已预构建，安装时无需编译。
@@ -116,7 +116,7 @@ dsh plugin --profile web add ".\dsh-todo-progress-1.2.1.tgz" --ignore-scripts
 
 ## 兼容性与数据说明
 
-- **验证范围**：DSH 运行时 `0.2.1-rc.5`，Web 与桌面客户端。其他宿主版本需要重新验证；界面中的任务名称和操作提示目前为中文。
+- **验证范围**：DSH 运行时 `0.2.1-rc.5`、`0.2.2-rc.1`，Web 与桌面客户端。其他宿主版本需要重新验证；界面中的任务名称和操作提示目前为中文。
 - **任务来源**：读取宿主当前会话的待办清单。完成比例按已完成项数计算，不代表工时或耗时比例；当前步骤取首个进行中任务。
 - **任务修改**：通过会话中的模型更新。插件读取和展示任务，不直接修改待办，也不自动创建任务清单。
 - **本地存储**：最近任务帧包含任务文本，与收起状态和偏好一起保存在当前浏览器或桌面客户端的本地存储中；这份缓存不提供跨设备同步。
@@ -127,7 +127,7 @@ dsh plugin --profile web add ".\dsh-todo-progress-1.2.1.tgz" --ignore-scripts
 
 仓库新增每日、手动及 PR 的宿主兼容检查，覆盖已验证版本和 npm `latest` / `next`。客户端把入口、布局、旧面板和导航分别隔离，减少可选接口变化对任务正文的影响。检查通过后仍需在新宿主的 Web / 桌面完成实机验收，再发布适配版本。
 
-目前已通过 DSH `0.2.1-rc.5` 与 `0.2.2-rc.1` 的所检查接口声明结构；后者尚未标记为运行时已验证。具体检查范围、失败处理和每次升级的验收步骤见 [DSH 升级适配说明](docs/COMPATIBILITY.md)。这些改进尚未发布到 npm 的 `1.2.1`。
+1.2.2 已在 DSH `0.2.2-rc.1` 上验证 Web 的工具写入、进度筛选和新建会话，以及本机桌面的入口、已有待办与设置保留。兼容声明显式列出两个宿主版本，避免旧包精确锁定导致升级被拦截。具体范围及后续升级步骤见 [DSH 升级适配说明](docs/COMPATIBILITY.md)。
 
 <details>
 <summary>本地缓存与卸载清理说明</summary>
@@ -199,7 +199,7 @@ New-Item -ItemType Directory -Path dist -Force | Out-Null
 npm pack --pack-destination dist
 ```
 
-打包后得到 `dist/dsh-todo-progress-1.2.1.tgz`。`npm pack` 自动构建并检查发布格式；包内包含运行时源码、预构建客户端、说明、图标、截图及许可证，不包含本地验证配置与认证日志。
+打包后得到 `dist/dsh-todo-progress-1.2.2.tgz`。`npm pack` 自动构建并检查发布格式；包内包含运行时源码、预构建客户端、说明、图标、截图及许可证，不包含本地验证配置与认证日志。
 
 ### 项目结构
 
@@ -237,6 +237,8 @@ marketplace/               投稿 YAML 与 PR 正文
 </details>
 
 ## 发布与反馈
+
+本次实机记录：[1.2.2 / DSH 0.2.2-rc.1 升级验收](docs/升级验收记录-1.2.2-2026-11-11.md)。
 
 上架格式、投稿材料和操作步骤见 [发布指南](docs/PUBLISHING.md)。[中文详情](docs/DETAIL.zh-CN.md) 与 [英文详情](docs/DETAIL.md) 通过 `locale/*` 的 `meta.detail` 提供给支持详情读取的宿主；市场展示应在实际收录后验证。
 

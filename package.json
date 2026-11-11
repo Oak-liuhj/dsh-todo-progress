@@ -1,6 +1,6 @@
 {
   "name": "dsh-todo-progress",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "type": "module",
   "description": "DSH 任务进度面板：从右上角查看多步任务的完成比例、当前步骤和待办清单，支持 Web 与桌面客户端。",
   "main": "index.js",
@@ -31,6 +31,7 @@
     "LICENSE.upstream",
     "docs/PUBLISHING.md",
     "docs/COMPATIBILITY.md",
+    "docs/升级验收记录-1.2.2-2026-11-11.md",
     "marketplace/"
   ],
   "scripts": {
@@ -43,11 +44,11 @@
     "check:host": "node scripts/check-host.mjs"
   },
   "engines": {
-    "dsh": "0.2.1-rc.5"
+    "dsh": "0.2.1-rc.5 || 0.2.2-rc.1"
   },
   "dsh": {
     "manifestVersion": 1,
-    "verifiedDsh": "0.2.1-rc.5",
+    "verifiedDsh": "0.2.2-rc.1",
     "bundle": {
       "patch": "./cordis.patch.yml"
     },
