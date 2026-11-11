@@ -41,6 +41,8 @@ Web 与桌面客户端使用同一套会话界面和任务入口。
 
 ### 按包名安装
 
+**升级到 DSH `0.2.2-rc.1` 后，请指定 `dsh-todo-progress@1.2.2`。** 刚发布时，pnpm 的发布观察期可能让不带版本的安装选中旧版 `1.2.1`，继而触发宿主不兼容提示。添加插件时可直接填写 `dsh-todo-progress@1.2.2`，或执行 `dsh plugin --profile desktop add dsh-todo-progress@1.2.2 --ignore-scripts --registry=https://registry.npmjs.org/`；Web 请将 profile 改为 `web`。无需启用宿主版本豁免。
+
 已发布 [npm 公共包 `dsh-todo-progress`](https://www.npmjs.com/package/dsh-todo-progress)。在 DSH 的添加插件入口填写 **`dsh-todo-progress`**；也可按实际 profile 选择一条命令：
 
 ```powershell
