@@ -1140,15 +1140,51 @@ function Body(props) {
   return h6("div", { className: "tp-panel", "data-tp-dark": dark ? "1" : "0" }, nodes);
 }
 
+// src/client/host/compatibility.js
+var warned = /* @__PURE__ */ new Set();
+function warnHost(feature, error) {
+  if (warned.has(feature)) return;
+  warned.add(feature);
+  console.warn(`[dsh-todo-progress] ${feature} 不可用，其他任务功能继续加载。`, error);
+}
+function hostBoundary(feature, fn) {
+  try {
+    return fn();
+  } catch (error) {
+    warnHost(feature, error);
+  }
+}
+function hostEffect(scope, feature, setup) {
+  const guarded = () => {
+    const dispose = hostBoundary(feature, setup);
+    if (typeof dispose === "function") return () => hostBoundary(`${feature}清理`, dispose);
+  };
+  return hostBoundary(feature, () => typeof scope.effect === "function" ? scope.effect(guarded, `task-panel: ${feature}`) : guarded());
+}
+function hostService(scope, name2) {
+  try {
+    return scope.get?.(name2) || scope[name2];
+  } catch {
+    return scope[name2];
+  }
+}
+
+// src/client/host/presentation.js
+function canResizePanel(info, element) {
+  if (!info?.tab?.visible || !info.panel || !info.sidebar || info.sidebar.fullscreen) return false;
+  if (typeof info.panel.isFloating === "boolean") return !info.panel.isFloating;
+  if (typeof element?.closest !== "function") return false;
+  return !element.closest("[data-dockkit-float]") && !!element.closest("[data-dockkit-pane]");
+}
+
 // src/client/components/panel.js
 var { createElement: h7, useRef: useRef7, useEffect: useEffect7, useState: useState7 } = import_react8.default;
 function Panel(props) {
   const element = useRef7(null);
-  const info = props.useTabInfo?.();
-  const visible = !!info?.tab.visible && !info.panel.isFloating && !info.sidebar.fullscreen;
+  const info = hostBoundary("任务页布局信息", () => props.useTabInfo?.());
   useEffect7(() => {
-    if (visible) return runtime.layout?.acquire(element.current?.getBoundingClientRect().width);
-  }, [visible, props.sessionId]);
+    if (canResizePanel(info, element.current)) return runtime.layout?.acquire(element.current?.getBoundingClientRect().width);
+  }, [info?.tab?.visible, info?.panel?.id, info?.panel?.isFloating, info?.sidebar?.fullscreen, props.sessionId]);
   return h7(
     "div",
     { ref: element, className: "tp-panel-host" },
@@ -1202,22 +1238,22 @@ function LegacyDock(props) {
   useEffect9(function() {
     var active = true;
     var sidebar = runtime.sidebar;
-    if (!sidebar || !sidebar.mounted) return;
-    var reveal = function() {
+    if (typeof sidebar?.mounted?.getSnapshot !== "function" || typeof sidebar.mounted.subscribe !== "function" || typeof sidebar.openTab !== "function") return;
+    var reveal = () => hostBoundary("切换会话后显示任务", function() {
       if (!active || runtime.revealSession !== props.sessionId || sidebar.mounted.getSnapshot() !== props.sessionId) return;
       try {
         sidebar.openTab(TAB_KIND);
         runtime.revealSession = null;
       } catch (e) {
       }
-    };
-    reveal();
-    var dispose = sidebar.mounted.subscribe(function() {
-      Promise.resolve().then(reveal);
     });
+    reveal();
+    var dispose = hostBoundary("任务会话订阅", () => sidebar.mounted.subscribe(function() {
+      Promise.resolve().then(reveal);
+    }));
     return function() {
       active = false;
-      dispose();
+      hostBoundary("任务会话订阅清理", () => dispose?.());
     };
   }, [props.sessionId]);
   return config.legacyDock ? h9(
@@ -1237,9 +1273,10 @@ function halfPanelWidth(width) {
   return Math.max(MIN_PANEL_WIDTH, Math.round(width / 2));
 }
 function resolveLayoutStore(slots) {
-  const root = slots.entriesOfSlot("root")[0];
+  if (typeof slots?.entriesOfSlot !== "function") return null;
+  const root = slots.entriesOfSlot("root")?.[0];
   const store = root?.store?.create?.();
-  return store?.actions?.setRightbar && store.getSnapshot?.().layoutInfo ? store : null;
+  return typeof store?.actions?.setRightbar === "function" && store.getSnapshot?.()?.layoutInfo ? store : null;
 }
 var CompactPanelLayout = class {
   constructor(resolve) {
@@ -1259,6 +1296,7 @@ var CompactPanelLayout = class {
         const info = this.store.getSnapshot().layoutInfo;
         this.previousWidth = info.rightbar ?? Math.round(info.viewportWidth * 0.45);
         const width = measuredWidth > 0 ? measuredWidth : this.previousWidth;
+        if (!Number.isFinite(width) || !Number.isFinite(this.previousWidth)) throw new Error("invalid layout width");
         this.compactWidth = halfPanelWidth(width);
         this.store.actions.setRightbar(this.compactWidth);
       } catch (error) {
@@ -1275,10 +1313,16 @@ var CompactPanelLayout = class {
   }
   /** 仅撤回本插件的调整；用户主动拖动过侧栏时保留用户的新宽度。 */
   restore() {
-    if (this.store?.getSnapshot().layoutInfo.rightbar === this.compactWidth) {
-      this.store.actions.setRightbar(this.previousWidth);
+    try {
+      if (this.store?.getSnapshot?.()?.layoutInfo?.rightbar === this.compactWidth && this.compactWidth !== null) {
+        this.store.actions.setRightbar(this.previousWidth);
+      }
+    } catch (error) {
+      warnHost("侧栏宽度恢复", error);
+    } finally {
+      this.store = null;
+      this.previousWidth = this.compactWidth = null;
     }
-    this.store = null;
   }
   dispose() {
     this.holders = 0;
@@ -1294,7 +1338,7 @@ var import_react11 = __toESM(require("react"), 1);
 var h10 = import_react11.default.createElement;
 function TaskEntry(props) {
   useTheme();
-  const todos = props.useProjection?.("todos");
+  const todos = hostBoundary("任务入口进度提示", () => props.useProjection?.("todos"));
   const unfinished = Array.isArray(todos) && todos.some((t) => t?.status === "in_progress" || t?.status === "pending");
   return h10(
     "button",
@@ -1304,7 +1348,8 @@ function TaskEntry(props) {
       title: "任务进度",
       "aria-label": "打开任务进度",
       "data-tp-entry": "",
-      onClick: () => runtime.sidebar.openTab(TAB_KIND)
+      disabled: typeof runtime.sidebar?.openTab !== "function",
+      onClick: () => hostBoundary("打开任务面板", () => runtime.sidebar?.openTab?.(TAB_KIND))
     },
     h10(
       "svg",
@@ -1319,11 +1364,15 @@ function TaskEntry(props) {
 
 // src/client/host/header-entry.js
 function registerHeaderEntry(slots) {
+  for (const method of ["inject", "entriesOfSlot", "subscribe", "register"]) {
+    if (typeof slots?.[method] !== "function") throw new Error(`slots.${method} unavailable`);
+  }
   const name2 = "conversation.session.header.corner";
   return slots.inject(name2, () => {
     let disposeEntry;
-    const register = () => {
-      if (disposeEntry) return;
+    let active = true;
+    const register = () => hostBoundary("右上角任务入口", () => {
+      if (!active || disposeEntry) return;
       const original = slots.entriesOfSlot(name2)[0];
       if (!original) return;
       disposeEntry = () => {
@@ -1331,7 +1380,7 @@ function registerHeaderEntry(slots) {
       try {
         disposeEntry = slots.register({
           name: name2,
-          priority: (original.options.priority ?? 0) - 1,
+          priority: (original.options?.priority ?? 0) - 1,
           store: original.store,
           inject: original.inject,
           locale: original.locale
@@ -1345,125 +1394,88 @@ function registerHeaderEntry(slots) {
         disposeEntry = void 0;
         throw error;
       }
-    };
+    });
     const unsubscribe = slots.subscribe(name2, register);
     register();
     return () => {
-      unsubscribe();
-      disposeEntry?.();
+      if (!active) return;
+      active = false;
+      hostBoundary("任务入口订阅清理", () => unsubscribe?.());
+      hostBoundary("任务入口注册清理", () => disposeEntry?.());
     };
   });
 }
 
 // src/client/register.js
 function apply(ctx) {
-  if (!ctx || typeof ctx.inject !== "function") {
-    try {
-      console.warn("[" + NS + "] 宿主 ctx 无 inject 面，面板未挂载");
-    } catch (e) {
-    }
+  if (typeof ctx?.inject !== "function") {
+    warnHost("插件服务注入", new Error("ctx.inject unavailable"));
     return;
   }
-  ctx.inject(["sidebarRight", "sidebarRightTabs", "slots", "sessions"], function(scope) {
-    try {
-      ensureCss();
-      var get = function(name2) {
-        var v = null;
-        try {
-          v = scope.get && scope.get(name2) || scope[name2];
-        } catch (e) {
-          v = scope && scope[name2];
-        }
-        return v;
-      };
-      var eff = function(fn, label) {
-        if (typeof scope.effect === "function") return scope.effect(fn, label);
-        return fn();
-      };
-      runtime.sidebar = get("sidebarRight");
-      eff(function() {
-        return function() {
-          runtime.sidebar = null;
-          runtime.revealSession = null;
-        };
-      }, "task-panel: navigation cleanup");
-      scope.inject(["uiWorkspace"], function(navigationScope) {
-        runtime.navigate = function(id) {
-          navigationScope.uiWorkspace.openSession(id);
-        };
-        navigationScope.effect(function() {
-          return function() {
-            runtime.navigate = null;
-          };
-        });
-      });
-      eff(function() {
-        var tabs = get("sidebarRightTabs");
-        if (!tabs || typeof tabs.register !== "function") {
-          try {
-            console.warn("[" + NS + "] sidebarRightTabs 服务不可得，tab 未注册");
-          } catch (e) {
-          }
-          return function() {
-          };
-        }
-        return tabs.register({
+  hostBoundary("插件服务注入", () => ctx.inject(["sidebarRight", "sidebarRightTabs", "slots", "sessions"], (scope) => {
+    hostBoundary("面板样式", ensureCss);
+    const sidebar = hostService(scope, "sidebarRight");
+    runtime.sidebar = sidebar;
+    hostEffect(scope, "会话联动", () => () => {
+      if (runtime.sidebar === sidebar) {
+        runtime.sidebar = null;
+        runtime.revealSession = null;
+      }
+    });
+    hostEffect(scope, "任务标签类型", () => {
+      const tabs = hostService(scope, "sidebarRightTabs");
+      if (typeof tabs?.register !== "function") throw new Error("sidebarRightTabs.register unavailable");
+      return tabs.register({
+        id: NS,
+        kind: TAB_KIND,
+        priority: "extension",
+        keepMounted: true,
+        title: () => "任务进度",
+        guide: [{
           id: NS,
-          kind: TAB_KIND,
-          priority: "extension",
-          keepMounted: true,
-          title: function() {
-            return "任务进度";
-          },
-          guide: [{
-            id: NS,
-            order: 45,
-            title: function() {
-              return "任务进度";
-            },
-            description: function() {
-              return "查看多步任务的完成比例、当前步骤和待办清单";
-            }
-          }]
-        });
-      }, "task-panel: tab type");
-      var slots = get("slots");
-      if (slots && typeof slots.register === "function") {
-        runtime.layout = new CompactPanelLayout(() => resolveLayoutStore(slots));
-        eff(() => () => {
-          runtime.layout?.dispose();
-          runtime.layout = null;
-        }, "task-panel: compact layout");
-        eff(() => registerHeaderEntry(slots), "task-panel: header entry");
-        var body = function() {
-          eff(function() {
-            return slots.register({ name: SLOT, key: NS, locale: NS }, Panel);
-          }, "task-panel: pane body");
-          eff(function() {
-            return slots.register({ name: SLOT + ".title", key: NS, locale: NS }, ChipTitle);
-          }, "task-panel: pane title");
-        };
-        eff(function() {
-          return slots.inject ? slots.inject(SLOT, body) : body();
-        }, "task-panel: pane tab slot");
-        eff(function() {
-          return slots.inject("conversation.input.dock", function() {
-            return slots.register({ name: "conversation.input.dock", id: "todo", priority: -10, order: 0, locale: NS }, LegacyDock);
-          });
-        }, "task-panel: legacy dock");
-      } else {
-        try {
-          console.warn("[" + NS + "] slots 服务不可得，面板未挂载");
-        } catch (e) {
-        }
-      }
-    } catch (e) {
-      try {
-        console.error("[" + NS + "] apply failed:", e);
-      } catch (_) {
-      }
+          order: 45,
+          title: () => "任务进度",
+          description: () => "查看多步任务的完成比例、当前步骤和待办清单"
+        }]
+      });
+    });
+    const slots = hostService(scope, "slots");
+    if (typeof slots?.register !== "function") {
+      warnHost("任务正文插槽", new Error("slots.register unavailable"));
+      return;
     }
-  });
+    const registerSlot = (name2, label, options, component) => hostEffect(scope, label, () => {
+      const register = () => hostEffect(scope, label, () => slots.register({ name: name2, ...options }, component));
+      return typeof slots.inject === "function" ? slots.inject(name2, register) : register();
+    });
+    registerSlot(SLOT, "任务正文", { key: NS, locale: NS }, Panel);
+    registerSlot(SLOT + ".title", "任务标题", { key: NS, locale: NS }, ChipTitle);
+    const layout = new CompactPanelLayout(() => resolveLayoutStore(slots));
+    runtime.layout = layout;
+    hostEffect(scope, "窄侧栏", () => () => {
+      layout.dispose();
+      if (runtime.layout === layout) runtime.layout = null;
+    });
+    hostEffect(scope, "右上角任务入口", () => registerHeaderEntry(slots));
+    registerSlot(
+      "conversation.input.dock",
+      "兼容输入区面板",
+      { id: "todo", priority: -10, order: 0, locale: NS },
+      LegacyDock
+    );
+    hostEffect(scope, "会话导航", () => {
+      if (typeof scope.inject !== "function") return;
+      return scope.inject(["uiWorkspace"], (navigationScope) => hostEffect(navigationScope, "会话导航", () => {
+        const workspace = hostService(navigationScope, "uiWorkspace");
+        if (typeof workspace?.openSession !== "function") throw new Error("uiWorkspace.openSession unavailable");
+        const navigate2 = (id) => workspace.openSession(id);
+        runtime.navigate = navigate2;
+        return () => {
+          if (runtime.navigate === navigate2) runtime.navigate = null;
+        };
+      }));
+    });
+  }));
 }
 
 // src/client/index.js
@@ -1481,6 +1493,7 @@ var __test = {
   cfgSave,
   handoffRows,
   useCompletionCollapse,
+  Panel,
   TaskEntry,
   registerHeaderEntry,
   runtime

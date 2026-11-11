@@ -123,6 +123,12 @@ dsh plugin --profile web add ".\dsh-todo-progress-1.2.1.tgz" --ignore-scripts
 - **模型配置**：无需为插件另行提供模型 API Key；模型调用继续使用 DSH 的配置。插件不保存登录凭据。
 - **布局适配**：半宽布局依赖当前宿主实现。宿主升级后若缺少所需能力，插件保留宿主布局；浮动和全屏模式沿用宿主行为。
 
+### 后续 DSH 升级
+
+仓库新增每日、手动及 PR 的宿主兼容检查，覆盖已验证版本和 npm `latest` / `next`。客户端把入口、布局、旧面板和导航分别隔离，减少可选接口变化对任务正文的影响。检查通过后仍需在新宿主的 Web / 桌面完成实机验收，再发布适配版本。
+
+目前已通过 DSH `0.2.1-rc.5` 与 `0.2.2-rc.1` 的所检查接口声明结构；后者尚未标记为运行时已验证。具体检查范围、失败处理和每次升级的验收步骤见 [DSH 升级适配说明](docs/COMPATIBILITY.md)。这些改进尚未发布到 npm 的 `1.2.1`。
+
 <details>
 <summary>本地缓存与卸载清理说明</summary>
 
@@ -187,6 +193,7 @@ pnpm install --frozen-lockfile
 npm run build          # 从 src/client/ 生成 client.js
 npm test               # 回归测试与 ModuleLoader 加载自检
 npm run check:release  # 产物一致性、装配、元数据、图标、截图和投稿条目
+npm run check:host -- --host latest  # 联网检查最新宿主的所用声明结构
 
 New-Item -ItemType Directory -Path dist -Force | Out-Null
 npm pack --pack-destination dist
@@ -209,7 +216,7 @@ src/server/                会话操作、认证与请求校验
 locale/                    插件页的中英文元数据和详情文档路径
 assets/                    图标源文件与 PNG
 screenshots.json           市场截图声明
-scripts/                   客户端构建与发布检查
+scripts/                   客户端构建、发布检查与官方宿主声明探测
 test/                      回归测试和加载自检
 docs/                      插件说明、发布指南与验收记录
 marketplace/               投稿 YAML 与 PR 正文
@@ -225,7 +232,7 @@ marketplace/               投稿 YAML 与 PR 正文
 - `host/compact-layout.js` 从公开 root 插槽记录取得共享 store，调用 `setRightbar` 调整宽度。该适配依赖当前宿主实现；多个可见任务页共用一次调整，最后一个退出才恢复。
 - 包名及 ModuleLoader id 为 `dsh-todo-progress`；插槽命名空间和缓存键保留 `dsh-task-panel` 以兼容已有数据。
 - `engines.dsh` 与 `dsh.verifiedDsh` 指向 DSH 运行时版本；历史 `dsBot.min` / `dsBot.verified` 是桌面壳字段，不与运行时版本混用。
-- 宿主升级后应复验入口、空会话、待办订阅、侧栏宽度恢复、浮动 / 全屏、会话操作和卸载。
+- 宿主升级后按 [兼容维护流程](docs/COMPATIBILITY.md) 复验入口、空会话、待办订阅、侧栏宽度恢复、浮动 / 全屏、会话操作和卸载。结构检查不自动扩大版本范围。
 
 </details>
 

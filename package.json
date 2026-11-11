@@ -30,6 +30,7 @@
     "LICENSE",
     "LICENSE.upstream",
     "docs/PUBLISHING.md",
+    "docs/COMPATIBILITY.md",
     "marketplace/"
   ],
   "scripts": {
@@ -38,7 +39,8 @@
     "pretest": "npm run build",
     "prepack": "npm run build && node scripts/check-release.mjs",
     "test": "node --test test/*.test.mjs && node test/selfcheck-load.mjs",
-    "check:release": "npm run build:check && node scripts/check-release.mjs"
+    "check:release": "npm run build:check && node scripts/check-release.mjs",
+    "check:host": "node scripts/check-host.mjs"
   },
   "engines": {
     "dsh": "0.2.1-rc.5"
@@ -68,7 +70,8 @@
   },
   "devDependencies": {
     "esbuild": "0.25.12",
-    "js-yaml": "4.3.2"
+    "js-yaml": "4.3.2",
+    "typescript": "5.9.3"
   },
   "license": "(Apache-2.0 AND MIT)",
   "author": "Oak-liuhj",

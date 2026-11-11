@@ -1,0 +1,37 @@
+name: DSH upgrade compatibility
+on:
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  host-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        host: [verified, latest, next]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npm test
+      - run: npm run check:release
+      - run: npm run check:host -- --host ${{ matrix.host }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dsh-host-${{ matrix.host }}
+          path: .local-validation/host-compatibility/*.json
+          retention-days: 30

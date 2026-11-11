@@ -5,6 +5,7 @@
  * 不写宿主 localStorage。此版本 root 的 create() 明确返回同一个共享实例。
  * 适配面集中在此文件；宿主改版缺少该能力时保留可用面板并提示一次。
  */
+import {warnHost} from './compatibility.js';
 export const MIN_PANEL_WIDTH = 300;
 
 export function halfPanelWidth(width) {
@@ -12,9 +13,10 @@ export function halfPanelWidth(width) {
 }
 
 export function resolveLayoutStore(slots) {
-    const root = slots.entriesOfSlot('root')[0];
+    if (typeof slots?.entriesOfSlot !== 'function') return null;
+    const root = slots.entriesOfSlot('root')?.[0];
     const store = root?.store?.create?.();
-    return store?.actions?.setRightbar && store.getSnapshot?.().layoutInfo ? store : null;
+    return typeof store?.actions?.setRightbar === 'function' && store.getSnapshot?.()?.layoutInfo ? store : null;
 }
 
 export class CompactPanelLayout {
@@ -36,6 +38,7 @@ export class CompactPanelLayout {
                 const info = this.store.getSnapshot().layoutInfo;
                 this.previousWidth = info.rightbar ?? Math.round(info.viewportWidth * 0.45);
                 const width = measuredWidth > 0 ? measuredWidth : this.previousWidth;
+                if (!Number.isFinite(width) || !Number.isFinite(this.previousWidth)) throw new Error('invalid layout width');
                 this.compactWidth = halfPanelWidth(width);
                 this.store.actions.setRightbar(this.compactWidth);
             } catch (error) {
@@ -53,10 +56,16 @@ export class CompactPanelLayout {
 
     /** 仅撤回本插件的调整；用户主动拖动过侧栏时保留用户的新宽度。 */
     restore() {
-        if (this.store?.getSnapshot().layoutInfo.rightbar === this.compactWidth) {
-            this.store.actions.setRightbar(this.previousWidth);
+        try {
+            if (this.store?.getSnapshot?.()?.layoutInfo?.rightbar === this.compactWidth && this.compactWidth !== null) {
+                this.store.actions.setRightbar(this.previousWidth);
+            }
+        } catch (error) {
+            warnHost('侧栏宽度恢复', error);
+        } finally {
+            this.store = null;
+            this.previousWidth = this.compactWidth = null;
         }
-        this.store = null;
     }
 
     dispose() { this.holders = 0; this.restore(); }
