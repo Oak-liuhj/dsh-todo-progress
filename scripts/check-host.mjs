@@ -83,7 +83,7 @@ await writeFile(output, JSON.stringify(report, null, 2) + '\n');
 console.log(`DSH ${report.hostVersion ?? target}: declaration structure ${report.passed ? 'PASS' : 'FAIL'}; report ${output}`);
 for (const p of report.packages) for (const c of p.checks) if (!c.ok) console.error(`${p.name}: ${c.contract} changed or missing`);
 for (const error of report.errors) console.error(error.package ?? 'host', error.message);
-console.log('This does not certify runtime/UI compatibility or update engines.dsh. Complete the upgrade checklist before release.');
+console.log('This does not certify runtime/UI compatibility or update engines.dsh. Complete runtime review before adding a tested host or updating verifiedDsh.');
 if (report.requiresRuntimeReview) {
     const notice = `DSH ${report.hostVersion} requires Web/desktop runtime review; verifiedDsh remains ${pkg.dsh.verifiedDsh}.`;
     console.log(process.env.GITHUB_ACTIONS ? `::warning::${notice}` : notice);

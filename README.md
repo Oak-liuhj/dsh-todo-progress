@@ -6,7 +6,7 @@
 
 > 多步任务里模型会调用 todo_write 写入待办清单，这里将实时出现进度
 
-当前版本 **1.2.2** · 已验证 DSH **0.2.2-rc.1**，保留 **0.2.1-rc.5** 支持 · 无第三方运行时依赖 · 任务界面为中文
+当前版本 **1.2.3** · 兼容范围：**0.2.1-rc.5 或 ≥0.2.2-rc.1、<0.3.0-0** · 历史实测 DSH **0.2.2-rc.1** · 无第三方运行时依赖 · 任务界面为中文
 
 [安装](#安装) · [快速上手](#快速上手) · [常见问题](#常见问题) · [English overview](docs/DETAIL.md) · [更新记录](CHANGELOG.md) · [问题反馈](https://github.com/Oak-liuhj/dsh-todo-progress/issues)
 
@@ -41,7 +41,7 @@ Web 与桌面客户端使用同一套会话界面和任务入口。
 
 ### 按包名安装
 
-**升级到 DSH `0.2.2-rc.1` 后，请指定 `dsh-todo-progress@1.2.2`。** 刚发布时，pnpm 的发布观察期可能让不带版本的安装选中旧版 `1.2.1`，继而触发宿主不兼容提示。添加插件时可直接填写 `dsh-todo-progress@1.2.2`，或执行 `dsh plugin --profile desktop add dsh-todo-progress@1.2.2 --ignore-scripts --registry=https://registry.npmjs.org/`；Web 请将 profile 改为 `web`。无需启用宿主版本豁免。
+**升级 DSH 后，请指定 `dsh-todo-progress@1.2.3`。** 本版声明兼容 `0.2.1-rc.5 || >=0.2.2-rc.1 <0.3.0-0`，包括 `0.2.2-rc.3` 和范围内后续 0.2.x 版本，排除 0.3.0 的全部预发布和正式版本。刚发布时，pnpm 的发布观察期可能仍选中旧版；可在添加插件时直接填写 `dsh-todo-progress@1.2.3`，或执行 `dsh plugin --profile desktop add dsh-todo-progress@1.2.3 --ignore-scripts --registry=https://registry.npmjs.org/`；Web 请将 profile 改为 `web`。无需启用宿主版本豁免。
 
 已发布 [npm 公共包 `dsh-todo-progress`](https://www.npmjs.com/package/dsh-todo-progress)。在 DSH 的添加插件入口填写 **`dsh-todo-progress`**；也可按实际 profile 选择一条命令：
 
@@ -57,16 +57,16 @@ dsh plugin --profile web add dsh-todo-progress --ignore-scripts
 
 ### 从本地安装包安装
 
-使用 `dsh-todo-progress-1.2.2.tgz`。如果仓库 [Releases](https://github.com/Oak-liuhj/dsh-todo-progress/releases) 已提供附件，可下载对应版本；否则按下方「开发与打包」从源码生成。
+使用 `dsh-todo-progress-1.2.3.tgz`。如果仓库 [Releases](https://github.com/Oak-liuhj/dsh-todo-progress/releases) 已提供附件，可下载对应版本；否则按下方「开发与打包」从源码生成。
 
 在安装包所在目录打开 PowerShell，按实际使用的 profile **选择一条**执行：
 
 ```powershell
 # DSH 桌面客户端
-dsh plugin --profile desktop add ".\dsh-todo-progress-1.2.2.tgz" --ignore-scripts
+dsh plugin --profile desktop add ".\dsh-todo-progress-1.2.3.tgz" --ignore-scripts
 
 # DSH Web
-dsh plugin --profile web add ".\dsh-todo-progress-1.2.2.tgz" --ignore-scripts
+dsh plugin --profile web add ".\dsh-todo-progress-1.2.3.tgz" --ignore-scripts
 ```
 
 自定义 profile 请将 `desktop` 或 `web` 替换为实际名称。更新已有版本时使用相同命令即可；插件客户端已预构建，安装时无需编译。
@@ -127,9 +127,9 @@ dsh plugin --profile web add ".\dsh-todo-progress-1.2.2.tgz" --ignore-scripts
 
 ### 后续 DSH 升级
 
-仓库新增每日、手动及 PR 的宿主兼容检查，覆盖已验证版本和 npm `latest` / `next`。客户端把入口、布局、旧面板和导航分别隔离，减少可选接口变化对任务正文的影响。检查通过后仍需在新宿主的 Web / 桌面完成实机验收，再发布适配版本。
+仓库新增每日、手动及 PR 的宿主兼容检查，覆盖已验证版本和 npm `latest` / `next`。客户端把入口、布局、旧面板和导航分别隔离，减少可选接口变化对任务正文的影响。范围内宿主无需逐个追加安装白名单；检查后继续补充 Web / 桌面实机验收，接口变化时修复适配器并发布新版。
 
-1.2.2 已在 DSH `0.2.2-rc.1` 上验证 Web 的工具写入、进度筛选和新建会话，以及本机桌面的入口、已有待办与设置保留。兼容声明显式列出两个宿主版本，避免旧包精确锁定导致升级被拦截。具体范围及后续升级步骤见 [DSH 升级适配说明](docs/COMPATIBILITY.md)。
+1.2.3 将安装范围与实测记录分开维护：`engines.dsh` 接受声明范围，`dsh.verifiedDsh` 与 `compatibility/policy.json` 保留历史实测基线。1.2.2 在 DSH `0.2.2-rc.1` 上的工具写入、筛选、新建会话及桌面已有待办与设置保留记录仍保留；扩大安装范围不代表每个宿主版本都已实测。具体范围及后续升级步骤见 [DSH 升级适配说明](docs/COMPATIBILITY.md)。
 
 <details>
 <summary>本地缓存与卸载清理说明</summary>
@@ -201,7 +201,7 @@ New-Item -ItemType Directory -Path dist -Force | Out-Null
 npm pack --pack-destination dist
 ```
 
-打包后得到 `dist/dsh-todo-progress-1.2.2.tgz`。`npm pack` 自动构建并检查发布格式；包内包含运行时源码、预构建客户端、说明、图标、截图及许可证，不包含本地验证配置与认证日志。
+打包后得到 `dist/dsh-todo-progress-1.2.3.tgz`。`npm pack` 自动构建并检查发布格式；包内包含运行时源码、预构建客户端、说明、图标、截图及许可证，不包含本地验证配置与认证日志。
 
 ### 项目结构
 
@@ -240,7 +240,7 @@ marketplace/               投稿 YAML 与 PR 正文
 
 ## 发布与反馈
 
-本次实机记录：[1.2.2 / DSH 0.2.2-rc.1 升级验收](docs/升级验收记录-1.2.2-2026-11-11.md)。
+历史实机记录：[1.2.2 / DSH 0.2.2-rc.1 升级验收](docs/升级验收记录-1.2.2-2026-11-11.md)。1.2.3 对 rc.3 的公开声明检查与范围调整见 [升级适配说明](docs/COMPATIBILITY.md)。
 
 上架格式、投稿材料和操作步骤见 [发布指南](docs/PUBLISHING.md)。[中文详情](docs/DETAIL.zh-CN.md) 与 [英文详情](docs/DETAIL.md) 通过 `locale/*` 的 `meta.detail` 提供给支持详情读取的宿主；市场展示应在实际收录后验证。
 

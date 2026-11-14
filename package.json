@@ -1,6 +1,6 @@
 {
   "name": "dsh-todo-progress",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "type": "module",
   "description": "DSH 任务进度面板：从右上角查看多步任务的完成比例、当前步骤和待办清单，支持 Web 与桌面客户端。",
   "main": "index.js",
@@ -31,6 +31,7 @@
     "LICENSE.upstream",
     "docs/PUBLISHING.md",
     "docs/COMPATIBILITY.md",
+    "compatibility/",
     "docs/升级验收记录-1.2.2-2026-11-11.md",
     "marketplace/"
   ],
@@ -44,7 +45,7 @@
     "check:host": "node scripts/check-host.mjs"
   },
   "engines": {
-    "dsh": "0.2.1-rc.5 || 0.2.2-rc.1"
+    "dsh": "0.2.1-rc.5 || >=0.2.2-rc.1 <0.3.0-0"
   },
   "dsh": {
     "manifestVersion": 1,
@@ -72,6 +73,7 @@
   "devDependencies": {
     "esbuild": "0.25.12",
     "js-yaml": "4.3.2",
+    "semver": "7.8.5",
     "typescript": "5.9.3"
   },
   "license": "(Apache-2.0 AND MIT)",

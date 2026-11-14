@@ -4,6 +4,7 @@ import {readFile, stat, realpath} from 'node:fs/promises';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import path from 'node:path';
 import {load} from 'js-yaml';
+import semver from 'semver';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
@@ -23,11 +24,18 @@ assert.equal(pkg.bugs.url, repo + '/issues');
 assert.ok(pkg.keywords.includes('dsh-plugin'));
 assert.equal(pkg.dsh.client.platform, 'web');
 assert.equal(pkg.dsh.manifestVersion, 1);
-// 显式列出验证过的宿主版本，避免精确单版本锁误拦升级，也避免放开未知未来版本。
-const supportedDsh = pkg.engines.dsh.split(' || ');
-assert.ok(supportedDsh.every(version => /^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(version)));
-assert.equal(new Set(supportedDsh).size, supportedDsh.length);
-assert.ok(supportedDsh.includes(pkg.dsh.verifiedDsh), 'Verified host must be in engines.dsh');
+// 安装范围由显式策略决定；历史实测版本独立记录，使用与 DSH 相同的预发布判定。
+const compatibility = JSON.parse(await readFile(await localFile('compatibility/policy.json'), 'utf8'));
+assert.equal(compatibility.schemaVersion, 1);
+assert.equal(typeof compatibility.supportedRuntimeRange, 'string');
+assert.ok(semver.validRange(compatibility.supportedRuntimeRange), 'Invalid DSH range');
+assert.equal(pkg.engines.dsh, compatibility.supportedRuntimeRange);
+assert.ok(compatibility.verifiedRuntimeVersions.includes(pkg.dsh.verifiedDsh));
+assert.equal(new Set(compatibility.verifiedRuntimeVersions).size, compatibility.verifiedRuntimeVersions.length);
+for (const version of compatibility.verifiedRuntimeVersions) {
+    assert.ok(semver.valid(version), 'Invalid verified host version');
+    assert.ok(semver.satisfies(version, pkg.engines.dsh, {includePrerelease: true}), `Verified host ${version} must be in engines.dsh`);
+}
 assert.deepEqual(Object.keys(pkg.dependencies ?? {}), [], 'Runtime dependencies should remain empty');
 assert.equal(pkg.scripts.prepare, undefined, 'GitHub installs use the checked-in client without an install-time build');
 
